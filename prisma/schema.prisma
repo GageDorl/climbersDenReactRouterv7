@@ -1,0 +1,543 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                         String    @id @default(uuid())
+  email                      String    @unique
+  passwordHash               String
+  displayName                String    @unique
+  bio                        String?
+  profilePhotoUrl            String?
+  latitude                   Decimal?  @db.Decimal(10, 7)
+  longitude                  Decimal?  @db.Decimal(10, 7)
+  locationCity               String?
+  locationPermissionGranted  Boolean   @default(false)
+  lastLocationUpdate         DateTime?
+  climbingStyles             String[]
+  experienceLevel            ExperienceLevel
+  emailVerified              Boolean   @default(false)
+  createdAt                  DateTime  @default(now())
+  lastActiveAt               DateTime  @default(now())
+  deletedAt                  DateTime?
+
+  // Relationships
+  posts                Post[]
+  likes                Like[]
+  comments             Comment[]
+  messagesSent         Message[]             @relation("SentMessages")
+  messagesReceived     Message[]             @relation("ReceivedMessages")
+  following            Follow[]              @relation("Following")
+  followers            Follow[]              @relation("Followers")
+  ticks                Tick[]
+  routeRatings         RouteRating[]
+  favoriteCrags        FavoriteCrag[]
+  journals             Journal[]
+  gearListsCreated     GearList[]
+  notifications        Notification[]
+  reportsSubmitted     Report[]
+  blocksInitiated      Block[]               @relation("BlocksInitiated")
+  blocksReceived       Block[]               @relation("BlocksReceived")
+  groupChatsCreated    GroupChat[]
+  groupMessagesSent    GroupMessage[]
+  cragSubmissions      CragSubmission[]
+  passwordResetTokens  PasswordResetToken[]
+
+  @@index([email])
+  @@index([displayName])
+  @@index([locationCity])
+  @@index([createdAt])
+  @@index([lastLocationUpdate])
+  @@map("users")
+}
+
+model Post {
+  id            String    @id @default(uuid())
+  userId        String
+  textContent   String?
+  mediaUrls     String[]
+  likeCount     Int       @default(0)
+  commentCount  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  comments  Comment[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([likeCount(sort: Desc)])
+  @@map("posts")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+  @@map("likes")
+}
+
+model Comment {
+  id              String   @id @default(uuid())
+  postId          String
+  userId          String
+  textContent     String
+  parentCommentId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  // Relationships
+  post          Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentComment Comment?   @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       Comment[]  @relation("CommentReplies")
+
+  @@index([postId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+model Conversation {
+  id             String    @id @default(uuid())
+  participantIds String[]
+  lastMessageAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+
+  // Relationships
+  messages Message[]
+
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  recipientId    String
+  textContent    String?
+  mediaUrls      String[]
+  sentAt         DateTime  @default(now())
+  readAt         DateTime?
+
+  // Relationships
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient    User         @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, sentAt])
+  @@index([recipientId, readAt])
+  @@map("messages")
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  followedId String
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followedId])
+  @@index([followerId])
+  @@map("follows")
+}
+
+model Notification {
+  id                String           @id @default(uuid())
+  userId            String
+  type              NotificationType
+  content           Json
+  relatedEntityId   String?
+  relatedEntityType EntityType?
+  readStatus        Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readStatus, createdAt(sort: Desc)])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Report {
+  id                  String            @id @default(uuid())
+  reporterUserId      String
+  reportedEntityType  ReportEntityType
+  reportedEntityId    String
+  reason              String
+  status              ReportStatus      @default(pending)
+  createdAt           DateTime          @default(now())
+  reviewedAt          DateTime?
+
+  // Relationships
+  reporter User @relation(fields: [reporterUserId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([reportedEntityType, reportedEntityId])
+  @@map("reports")
+}
+
+model Block {
+  id            String   @id @default(uuid())
+  blockerUserId String
+  blockedUserId String
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  blocker User @relation("BlocksInitiated", fields: [blockerUserId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerUserId, blockedUserId])
+  @@index([blockedUserId])
+  @@map("blocks")
+}
+
+model GroupChat {
+  id             String   @id @default(uuid())
+  creatorId      String
+  participantIds String[]
+  name           String
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  // Relationships
+  creator  User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  messages GroupMessage[]
+
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("group_chats")
+}
+
+model GroupMessage {
+  id          String   @id @default(uuid())
+  groupChatId String
+  senderId    String
+  textContent String?
+  mediaUrls   String[]
+  sentAt      DateTime @default(now())
+
+  // Relationships
+  groupChat GroupChat @relation(fields: [groupChatId], references: [id], onDelete: Cascade)
+  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([groupChatId, sentAt])
+  @@map("group_messages")
+}
+
+model Crag {
+  id                  String   @id @default(uuid())
+  name                String
+  latitude            Decimal? @db.Decimal(10, 7)
+  longitude           Decimal? @db.Decimal(10, 7)
+  description         String?  @db.Text
+  elevation           Int?
+  approachDescription String?  @db.Text
+  totalRouteCount     Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relationships
+  routes           Route[]
+  favoriteCrags    FavoriteCrag[]
+  weatherForecasts WeatherForecast[]
+
+  @@index([name])
+  @@index([totalRouteCount(sort: Desc)])
+  @@map("crags")
+}
+
+model Route {
+  id            String     @id @default(uuid())
+  cragId        String
+  name          String
+  type          RouteType
+  grade         String
+  pitchCount    Int        @default(1)
+  length        Int?
+  description   String?    @db.Text
+  averageRating Decimal?   @db.Decimal(2, 1)
+  ratingCount   Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relationships
+  crag         Crag          @relation(fields: [cragId], references: [id], onDelete: Cascade)
+  ticks        Tick[]
+  routeRatings RouteRating[]
+
+  @@index([cragId, grade])
+  @@index([name])
+  @@index([type])
+  @@index([averageRating(sort: Desc)])
+  @@map("routes")
+}
+
+model Tick {
+  id            String    @id @default(uuid())
+  userId        String
+  routeId       String
+  date          DateTime
+  sendStyle     SendStyle
+  attempts      Int?
+  personalNotes String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date(sort: Desc)])
+  @@index([routeId])
+  @@index([userId, routeId])
+  @@map("ticks")
+}
+
+model RouteRating {
+  id         String   @id @default(uuid())
+  userId     String
+  routeId    String
+  starRating Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, routeId])
+  @@index([routeId])
+  @@map("route_ratings")
+}
+
+model FavoriteCrag {
+  id        String   @id @default(uuid())
+  userId    String
+  cragId    String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crag Crag @relation(fields: [cragId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cragId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("favorite_crags")
+}
+
+model WeatherForecast {
+  id                  String              @id @default(uuid())
+  cragId              String
+  forecastDate        DateTime
+  temperatureHigh     Int
+  temperatureLow      Int
+  precipitationChance Int
+  windSpeed           Int
+  conditionSummary    String
+  climbingSuitability ClimbingSuitability
+  fetchedAt           DateTime            @default(now())
+  createdAt           DateTime            @default(now())
+
+  // Relationships
+  crag Crag @relation(fields: [cragId], references: [id], onDelete: Cascade)
+
+  @@unique([cragId, forecastDate])
+  @@index([fetchedAt])
+  @@map("weather_forecasts")
+}
+
+model Journal {
+  id          String       @id @default(uuid())
+  userId      String
+  title       String
+  textContent String       @db.Text
+  tags        String[]
+  location    String?
+  mediaUrls   String[]
+  syncStatus  SyncStatus   @default(synced)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  syncedAt    DateTime?
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([syncStatus, userId])
+  @@map("journals")
+}
+
+model GearList {
+  id             String     @id @default(uuid())
+  creatorId      String
+  name           String
+  description    String?    @db.Text
+  tripDate       DateTime?
+  participantIds String[]
+  archived       Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relationships
+  creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  gearItems GearItem[]
+
+  @@index([creatorId, archived, tripDate])
+  @@map("gear_lists")
+}
+
+model GearItem {
+  id                String   @id @default(uuid())
+  gearListId        String
+  itemName          String
+  quantityNeeded    Int
+  quantityClaimed   Int      @default(0)
+  claimedByUserIds  String[]
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  gearList GearList @relation(fields: [gearListId], references: [id], onDelete: Cascade)
+
+  @@index([gearListId])
+  @@map("gear_items")
+}
+
+model CragSubmission {
+  id              String                 @id @default(uuid())
+  submitterUserId String
+  entityType      SubmissionEntityType
+  name            String
+  location        String?
+  parentCragId    String?
+  details         Json
+  status          SubmissionStatus       @default(pending)
+  submittedAt     DateTime               @default(now())
+  reviewedAt      DateTime?
+
+  // Relationships
+  submitter User @relation(fields: [submitterUserId], references: [id], onDelete: Cascade)
+
+  @@index([status, submittedAt])
+  @@index([submitterUserId])
+  @@map("crag_submissions")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// Enums
+enum ExperienceLevel {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+enum NotificationType {
+  new_message
+  post_liked
+  new_follower
+  gear_claimed
+  all_gear_claimed
+  post_comment
+  comment_reply
+}
+
+enum EntityType {
+  post
+  message
+  user
+  gear_list
+}
+
+enum ReportEntityType {
+  post
+  message
+  user
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  action_taken
+  dismissed
+}
+
+enum RouteType {
+  sport
+  trad
+  boulder
+  mixed
+}
+
+enum SendStyle {
+  redpoint
+  flash
+  onsight
+  project
+  toprope
+  follow
+}
+
+enum ClimbingSuitability {
+  good
+  fair
+  poor
+}
+
+enum SyncStatus {
+  synced
+  pending
+  conflict
+}
+
+enum SubmissionEntityType {
+  crag
+  route
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+}

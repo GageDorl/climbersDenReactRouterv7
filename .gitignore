@@ -1,7 +1,38 @@
-.DS_Store
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Dependencies
 /node_modules/
+/.pnp/
+.pnp.js
+
+# Testing
+/coverage/
+playwright-report/
+test-results/
+
+# Production
+/build/
+/dist/
 
 # React Router
 /.react-router/
-/build/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
+.idea/
+
+# Database
+*.db
+*.db-journal
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal

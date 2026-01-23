@@ -1,4 +1,36 @@
+# Build artifacts
 .react-router
 build
+/dist
+
+# Dependencies
 node_modules
+
+# Development files
+.git
+.gitignore
 README.md
+.vscode
+.idea
+
+# Environment variables (use build args instead)
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+test-results
+playwright-report
+*.test.ts
+*.test.tsx
+*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
