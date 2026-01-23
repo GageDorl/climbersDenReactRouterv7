@@ -9,20 +9,24 @@ import { createUserSession, getUserId, verifyPassword } from "~/lib/auth.server"
 import { db } from "~/lib/db.server";
 import { loginSchema } from "~/lib/validation";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export const loader = async ({ request }: Route.LoaderArgs) => {
   // Redirect to posts feed if already logged in
   const userId = await getUserId(request);
   if (userId) {
     return redirect("/posts");
   }
   return null;
-}
+};
 
-export async function action({ request }: Route.ActionArgs) {
+export const action = async ({ request }: Route.ActionArgs) => {
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+
   const formData = await request.formData();
   const emailOrUsername = formData.get("emailOrUsername");
   const password = formData.get("password");
-  const redirectTo = formData.get("redirectTo") as string || "/posts";
+  const redirectTo = (formData.get("redirectTo") as string) || "/posts";
 
   // Debug: check what we're getting
   console.log("[Login] Form data:", { emailOrUsername, password });
