@@ -15,6 +15,13 @@ const viteDevServer =
 
 const app = express();
 
+// Debug middleware
+app.use((req, res, next) => {
+  if (req.path.includes('auth/login')) {
+    console.log('[REQUEST]', req.method, req.path, 'Content-Type:', req.headers['content-type']);
+  }
+  next();
+});
 
 // Configure body size limits for file uploads
 app.use(express.json({ limit: "50mb" }));
