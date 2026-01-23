@@ -24,6 +24,17 @@ export async function action({ request }: Route.ActionArgs) {
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo") as string || "/posts";
 
+  // Debug: check what we're getting
+  console.log("[Login] Form data:", { emailOrUsername, password });
+
+  // Check if fields are null
+  if (!emailOrUsername || !password) {
+    return {
+      error: "Email/username and password are required",
+      fields: { emailOrUsername: emailOrUsername as string },
+    };
+  }
+
   // Validate input
   const result = loginSchema.safeParse({ emailOrUsername, password });
 
