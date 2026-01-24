@@ -115,7 +115,13 @@ export default function TicksStats() {
               .reverse()
               .map(([month, count]) => (
                 <div key={month} className="flex items-center justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">{new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{(() => {
+                    const date = new Date(month + '-01');
+                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    const monthName = months[date.getMonth()];
+                    const year = date.getFullYear();
+                    return `${monthName} ${year}`;
+                  })()}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">{count} ticks</span>
                 </div>
               ))}

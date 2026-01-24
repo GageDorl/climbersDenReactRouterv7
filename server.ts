@@ -24,8 +24,9 @@ app.use((req, res, next) => {
 });
 
 // Configure body size limits for file uploads
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+// Note: Only use JSON parser - React Router handles form data parsing itself
+// including both urlencoded and multipart (FormData with files)
+app.use(express.json({ limit: "100mb" }));
 
 // Handle .well-known requests (Chrome DevTools, etc.)
 app.use((req, res, next) => {

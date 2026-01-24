@@ -7,7 +7,13 @@ function suitabilityBadge(s: WeatherDay['suitability']) {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const date = new Date(iso);
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const weekday = weekdays[date.getDay()];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  return `${weekday}, ${month} ${day}`;
 }
 
 export function WeatherWidget({ forecast }: { forecast: WeatherDay[] }) {

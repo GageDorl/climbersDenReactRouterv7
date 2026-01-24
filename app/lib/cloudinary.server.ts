@@ -18,16 +18,20 @@ export interface UploadOptions {
  * Generate a signed upload URL for client-side uploads
  */
 export async function generateUploadSignature(
+  folder: string,
   preset: 'profile' | 'post' | 'journal' = 'post'
-): Promise<{ signature: string; timestamp: number; apiKey: string; cloudName: string }> {
+): Promise<{ signature: string; timestamp: number; apiKey: string; cloudName: string; folder: string }> {
   const timestamp = Math.round(new Date().getTime() / 1000);
-  const uploadPreset = getUploadPreset(preset);
+
+  // Include only the parameters that will be sent by the client
+  // No upload_preset needed for signed uploads - the signature authorizes
+  const params = {
+    timestamp,
+    folder,
+  };
 
   const signature = cloudinary.utils.api_sign_request(
-    {
-      timestamp,
-      upload_preset: uploadPreset,
-    },
+    params,
     process.env.CLOUDINARY_API_SECRET!
   );
 
@@ -36,6 +40,7 @@ export async function generateUploadSignature(
     timestamp,
     apiKey: process.env.CLOUDINARY_API_KEY!,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+    folder,
   };
 }
 

@@ -27,8 +27,11 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   try {
-    const formData = await request.json();
-    const validated = createCommentSchema.parse(formData);
+    const formData = await request.formData();
+    const validated = createCommentSchema.parse({
+      textContent: formData.get('textContent'),
+      parentCommentId: formData.get('parentCommentId') || null,
+    });
 
     // Verify the post exists
     const post = await db.post.findUnique({

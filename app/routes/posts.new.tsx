@@ -2,7 +2,6 @@ import { redirect } from 'react-router';
 import type { Route } from './+types/posts.new';
 import { getUserId } from '~/lib/auth.server';
 import { db } from '~/lib/db.server';
-import { uploadFileToCloudinary } from '~/lib/cloudinary.server';
 import { CreatePostForm } from '~/components/posts/create-post-form';
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -26,17 +25,17 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.formData();
   const textContent = (formData.get('textContent') as string) || '';
-
-  // Handle multiple media files
-  const mediaFiles: File[] = [];
+  
+  // Get media URLs (uploaded client-side to Cloudinary)
+  const mediaUrls: string[] = [];
   for (const [key, value] of formData.entries()) {
-    if (key === 'media' && value instanceof File && value.size > 0) {
-      mediaFiles.push(value);
+    if (key === 'mediaUrl' && typeof value === 'string' && value.trim()) {
+      mediaUrls.push(value.trim());
     }
   }
 
   // Validate at least text or media present
-  if (textContent.trim().length === 0 && mediaFiles.length === 0) {
+  if (textContent.trim().length === 0 && mediaUrls.length === 0) {
     return new Response(
       JSON.stringify({ error: 'Post must contain text content or media' }),
       { status: 400 }
@@ -52,67 +51,15 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   // Validate media count (max 10 items)
-  if (mediaFiles.length > 10) {
+  if (mediaUrls.length > 10) {
     return new Response(
       JSON.stringify({ error: 'Maximum 10 media files allowed per post' }),
       { status: 400 }
     );
   }
 
-  // Check if any file is a video
-  const hasVideo = mediaFiles.some((file) => file.type.startsWith('video/'));
-
-  if (hasVideo && mediaFiles.length > 1) {
-    return new Response(
-      JSON.stringify({ error: 'Only 1 video allowed per post (or multiple images)' }),
-      { status: 400 }
-    );
-  }
-
-  // Validate video file size (max 100MB)
-  if (hasVideo) {
-    const videoFile = mediaFiles[0];
-    const maxVideoSize = 100 * 1024 * 1024; // 100MB in bytes
-    if (videoFile.size > maxVideoSize) {
-      return new Response(
-        JSON.stringify({ error: 'Video must be less than 100MB' }),
-        { status: 400 }
-      );
-    }
-  }
-
-  // Validate image file sizes
-  const maxImageSize = 100 * 1024 * 1024; // 100MB in bytes
-  for (const file of mediaFiles) {
-    if (file.size > maxImageSize) {
-      return new Response(
-        JSON.stringify({ error: `File "${file.name}" exceeds maximum size of 100MB` }),
-        { status: 400 }
-      );
-    }
-  }
-
   try {
-    // Upload media files to Cloudinary
-    const mediaUrls: string[] = [];
-    for (const file of mediaFiles) {
-      const isVideo = file.type.startsWith('video/');
-      try {
-        const result = await uploadFileToCloudinary(
-          file,
-          isVideo ? 'posts/videos' : 'posts/images'
-        );
-        mediaUrls.push(result.secure_url);
-      } catch (uploadError) {
-        console.error('Upload error:', uploadError);
-        return new Response(
-          JSON.stringify({ error: `Failed to upload ${file.name}. Please try again.` }),
-          { status: 500 }
-        );
-      }
-    }
-
-    // Create post in database
+    // Create post in database with Cloudinary URLs
     const post = await db.post.create({
       data: {
         userId,

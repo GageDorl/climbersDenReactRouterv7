@@ -13,7 +13,9 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
   const [textContent, setTextContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -66,7 +68,56 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
     };
   }, []);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+   * Upload a file directly to Cloudinary
+   */
+  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    try {
+      const folder = file.type.startsWith('video/') ? 'messages/videos' : 'messages/images';
+      
+      // Get upload signature from server  
+      const configResponse = await fetch(`/api/upload/signature?folder=${encodeURIComponent(folder)}&preset=post`);
+      if (!configResponse.ok) {
+        console.error('Signature response not ok:', configResponse.status);
+        throw new Error('Failed to get upload signature');
+      }
+
+      const { signature, timestamp, apiKey, cloudName, folder: signedFolder } = await configResponse.json();
+      console.log('Got signature, cloudName:', cloudName);
+
+      // Prepare FormData with exactly the parameters that were signed
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('timestamp', timestamp.toString());
+      uploadFormData.append('signature', signature);
+      uploadFormData.append('api_key', apiKey);
+      uploadFormData.append('folder', signedFolder);
+
+      // Upload to Cloudinary
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+      console.log('Uploading to:', uploadUrl);
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Cloudinary error:', response.status, error);
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Upload success:', data.secure_url);
+      return data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      return null;
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
     if (files.length === 0) return;
@@ -86,6 +137,19 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
     const urls = validFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls(urls);
 
+    // Upload files to Cloudinary in parallel
+    setIsUploading(true);
+    try {
+      const uploadPromises = validFiles.map((file) => uploadToCloudinary(file));
+      const results = await Promise.all(uploadPromises);
+      const successfulUrls = results.filter((url) => url !== null) as string[];
+      setUploadedUrls(successfulUrls);
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
+
     if (onMediaSelect) {
       onMediaSelect(validFiles);
     }
@@ -94,12 +158,14 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     const newUrls = previewUrls.filter((_, i) => i !== index);
+    const newUploadedUrls = uploadedUrls.filter((_, i) => i !== index);
     
     // Revoke old URL
     URL.revokeObjectURL(previewUrls[index]);
     
     setSelectedFiles(newFiles);
     setPreviewUrls(newUrls);
+    setUploadedUrls(newUploadedUrls);
 
     if (onMediaSelect) {
       onMediaSelect(newFiles);
@@ -110,7 +176,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
     if (e) e.preventDefault();
     
     // Validate
-    if ((!textContent || textContent.trim().length === 0) && selectedFiles.length === 0) {
+    if ((!textContent || textContent.trim().length === 0) && uploadedUrls.length === 0) {
       return;
     }
     
@@ -123,27 +189,29 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Submit form to server
+    // Submit form to server with media URLs (not files)
     const formData = new FormData();
     formData.append("textContent", textContent.trim());
-    selectedFiles.forEach((file) => {
-      formData.append("media", file);
+    
+    // Add uploaded Cloudinary URLs only
+    uploadedUrls.forEach((url) => {
+      formData.append("mediaUrl", url);
     });
 
-    // Notify parent of optimistic update (pass empty mediaUrls - will be populated from server)
+    // Notify parent of optimistic update
     if (onSendMessage) {
-      onSendMessage(textContent.trim(), []);
+      onSendMessage(textContent.trim(), uploadedUrls);
     }
     
     // Submit to server
     fetcher.submit(formData, {
       method: "POST",
-      encType: "multipart/form-data",
     });
     
     // Clear form
     setTextContent("");
     setSelectedFiles([]);
+    setUploadedUrls([]);
     previewUrls.forEach((url) => URL.revokeObjectURL(url));
     setPreviewUrls([]);
     
@@ -168,6 +236,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
           {previewUrls.map((url, index) => {
             const file = selectedFiles[index];
             const isVideo = file.type.startsWith("video/");
+            const isUploaded = uploadedUrls[index] ? true : false;
 
             return (
               <div key={index} className="relative">
@@ -182,6 +251,9 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
                     alt={`Preview ${index + 1}`}
                     className="h-20 w-20 rounded object-cover"
                   />
+                )}
+                {isUploaded && (
+                  <div className="absolute top-1 right-1 bg-green-500 text-white text-xs rounded-full p-1">✓</div>
                 )}
                 <button
                   type="button"
@@ -207,13 +279,15 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
           accept="image/*,video/*"
           onChange={handleFileSelect}
           className="hidden"
+          disabled={isUploading}
         />
 
         {/* Attach media button */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex-shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          disabled={isUploading}
+          className="flex-shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 disabled:opacity-50"
           aria-label="Attach media"
         >
           <svg
@@ -241,16 +315,17 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
             placeholder="Type a message..."
             rows={1}
             className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            required={selectedFiles.length === 0}
+            required={uploadedUrls.length === 0}
+            disabled={isUploading}
           />
 
         {/* Send button */}
         <button
           type="submit"
-          disabled={!textContent.trim() && selectedFiles.length === 0}
+          disabled={(!textContent.trim() && uploadedUrls.length === 0) || isUploading}
           className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Send
+          {isUploading ? 'Uploading...' : 'Send'}
         </button>
       </div>
     </form>

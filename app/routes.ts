@@ -52,6 +52,7 @@ export default [
   route("api/routes/:routeId/rating", "routes/api.routes.$routeId.rating.tsx"),
   route("api/ticks/:tickId/share", "routes/api.ticks.$tickId.share.tsx"),
   route("api/ticks/:tickId/delete", "routes/api.ticks.$tickId.delete.tsx"),
+  route("api/upload/signature", "routes/api.upload.signature.tsx"),
   
   // Tick routes
   route("ticks", "routes/ticks._index.tsx"),

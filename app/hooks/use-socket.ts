@@ -18,7 +18,7 @@ function notifyConnectionChange(connected: boolean) {
   connectionListeners.forEach(listener => listener(connected));
 }
 
-export function useSocket() {
+export function useSocket(shouldConnect = true) {
   const [isConnected, setIsConnected] = useState(isSocketConnected);
 
   useEffect(() => {
@@ -47,10 +47,13 @@ export function useSocket() {
       });
     }
 
-    // Connect socket if not already connected
-    if (!socket.connected) {
+    // Connect socket if not already connected and shouldConnect is true
+    if (shouldConnect && !socket.connected) {
       socket.connect();
-    } else {
+    } else if (!shouldConnect && socket.connected) {
+      // Disconnect if we shouldn't connect
+      socket.disconnect();
+    } else if (shouldConnect && socket.connected) {
       // Already connected, update state
       setIsConnected(true);
     }
@@ -59,7 +62,7 @@ export function useSocket() {
       // Unregister this component's state updater
       connectionListeners.delete(setIsConnected);
     };
-  }, []);
+  }, [shouldConnect]);
 
   return {
     socket,

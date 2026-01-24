@@ -162,7 +162,14 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="text-xs text-gray-500 dark:text-gray-400 pt-4 border-t dark:border-gray-700">
-              Member since {new Date(user.createdAt).toLocaleDateString()}
+              Member since {(() => {
+                const date = new Date(user.createdAt);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = months[date.getMonth()];
+                const day = date.getDate();
+                const year = date.getFullYear();
+                return `${month} ${day}, ${year}`;
+              })()}
             </div>
           </CardContent>
         </Card>

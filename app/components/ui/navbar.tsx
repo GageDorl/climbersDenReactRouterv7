@@ -9,22 +9,18 @@ interface NavbarProps {
   unreadMessageCount?: number;
 }
 
-export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarProps) {
-  const location = useLocation();
-  const revalidator = useRevalidator();
+// Client-only component that handles socket connections
+function NavbarSocketHandler({ userId, revalidator }: { userId?: string; revalidator: ReturnType<typeof useRevalidator> }) {
   const { socket } = useSocket();
-  
-  // Listen for new message notifications and revalidate to update unread count
+
   useEffect(() => {
     if (!socket || !userId) return;
 
     const handleNewMessage = () => {
-      // Revalidate root loader to update unread count
       revalidator.revalidate();
     };
 
     const handleNotification = (data: any) => {
-      // Revalidate on any notification that might affect message count
       if (data.notification.type === 'new_message') {
         revalidator.revalidate();
       }
@@ -38,8 +34,14 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
       socket.off('notification:new', handleNotification);
     };
   }, [socket, userId, revalidator]);
+
+  return null;
+}
+
+export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarProps) {
+  const location = useLocation();
   
-  // Don't show navbar on auth pages
+  // Don't render navbar on auth pages
   if (location.pathname.startsWith('/auth')) {
     return null;
   }
@@ -49,8 +51,13 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
     return null;
   }
 
+  const revalidator = useRevalidator();
+
   return (
     <>
+      {/* Socket handler - only on client side */}
+      {userId && <NavbarSocketHandler userId={userId} revalidator={revalidator} />}
+      
       {/* Top Navbar */}
       <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

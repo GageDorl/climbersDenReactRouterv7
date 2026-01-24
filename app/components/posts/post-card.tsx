@@ -199,13 +199,16 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                 {post.user.displayName}
               </a>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(post.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {(() => {
+                  const date = new Date(post.createdAt);
+                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  const month = months[date.getMonth()];
+                  const day = date.getDate();
+                  const year = date.getFullYear();
+                  const hours = date.getHours().toString().padStart(2, '0');
+                  const minutes = date.getMinutes().toString().padStart(2, '0');
+                  return `${month} ${day}, ${year} ${hours}:${minutes}`;
+                })()}
               </p>
             </div>
           </div>

@@ -1,10 +1,39 @@
 import { useFetcher } from 'react-router';
-import { formatDistanceToNow } from 'date-fns';
 import { Trash2, Reply, Edit2, MoreVertical } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { CommentInput } from './comment-input';
 import type { Comment, User } from '~/types/db';
+
+// Manual time ago function that works consistently on server and client
+function timeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffSecs < 60) return 'just now';
+  if (diffMins === 1) return '1 minute ago';
+  if (diffMins < 60) return `${diffMins} minutes ago`;
+  if (diffHours === 1) return '1 hour ago';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  
+  // For older dates, show actual date
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const currentYear = now.getFullYear();
+  
+  if (year === currentYear) {
+    return `${month} ${day}`;
+  }
+  return `${month} ${day}, ${year}`;
+}
 
 interface CommentItemProps {
   comment: Comment & {
@@ -94,12 +123,14 @@ export function CommentItem({
       return;
     }
 
+    const formData = new FormData();
+    formData.append('textContent', editText);
+
     editFetcher.submit(
-      { textContent: editText },
+      formData,
       {
         method: 'PUT',
         action: `/api/comments/${comment.id}/edit`,
-        encType: 'application/json',
       }
     );
 
@@ -162,7 +193,7 @@ export function CommentItem({
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-medium text-sm">{comment.user.displayName}</p>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                    {timeAgo(new Date(comment.createdAt))}
                   </span>
                 </div>
                 <p className="text-sm text-gray-700 dark:text-gray-300 wrap-break-word">

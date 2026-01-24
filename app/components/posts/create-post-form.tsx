@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { ImageCropper } from '~/components/posts/image-cropper';
 import { MediaGrid, type MediaItem } from '~/components/posts/media-grid';
 import { UploadProgress, type UploadProgressItem } from '~/components/posts/upload-progress';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader } from 'lucide-react';
 
 interface ActionData {
   error?: string;
@@ -22,6 +22,8 @@ export function CreatePostForm() {
   const [cropperImage, setCropperImage] = useState('');
   const [cropperImageId, setCropperImageId] = useState('');
   const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -102,6 +104,55 @@ export function CreatePostForm() {
     []
   );
 
+  /**
+   * Upload a file directly to Cloudinary using signed upload
+   */
+  const uploadToCloudinary = async (file: File, progressId: string): Promise<string | null> => {
+    try {
+      const folder = file.type.startsWith('video/') ? 'posts/videos' : 'posts/images';
+      
+      // Get upload signature from server
+      const configResponse = await fetch(`/api/upload/signature?folder=${encodeURIComponent(folder)}&preset=post`);
+      if (!configResponse.ok) {
+        console.error('Signature response not ok:', configResponse.status);
+        throw new Error('Failed to get upload signature');
+      }
+
+      const { signature, timestamp, apiKey, cloudName, folder: signedFolder } = await configResponse.json();
+      console.log('Got signature, cloudName:', cloudName);
+
+      // Prepare FormData with exactly the parameters that were signed
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('timestamp', timestamp.toString());
+      uploadFormData.append('signature', signature);
+      uploadFormData.append('api_key', apiKey);
+      uploadFormData.append('folder', signedFolder);
+
+      // Upload to Cloudinary
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+      console.log('Uploading to:', uploadUrl);
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Cloudinary error:', response.status, error);
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Upload success:', data.secure_url);
+      return data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      return null;
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.currentTarget.files;
     if (!files) return;
@@ -119,32 +170,29 @@ export function CreatePostForm() {
     }));
     setUploadProgress(progressItems);
 
-    // Process files
+    // Process files - upload to Cloudinary directly
+    const uploadedUrlsList: string[] = [];
     for (let i = 0; i < filesToAdd.length; i++) {
       const file = filesToAdd[i];
       const progressId = progressItems[i].id;
 
       try {
-        const mediaItem = await createMediaItemFromFile(file);
+        // Upload directly to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(file, progressId);
+        
+        if (cloudinaryUrl) {
+          uploadedUrlsList.push(cloudinaryUrl);
 
-        if (mediaItem) {
-          setMedia((prev) => [...prev, mediaItem]);
+          // Create local media item for preview
+          const mediaItem = await createMediaItemFromFile(file);
+          if (mediaItem) {
+            setMedia((prev) => [...prev, { ...mediaItem, url: cloudinaryUrl }]);
+          }
+
           setUploadProgress((prev) =>
             prev.map((p) =>
               p.id === progressId
                 ? { ...p, progress: 100, status: 'success' as const }
-                : p
-            )
-          );
-        } else {
-          setUploadProgress((prev) =>
-            prev.map((p) =>
-              p.id === progressId
-                ? {
-                  ...p,
-                  status: 'error' as const,
-                  error: 'Failed to process file',
-                }
                 : p
             )
           );
@@ -164,6 +212,8 @@ export function CreatePostForm() {
       }
     }
 
+    setUploadedUrls((prev) => [...prev, ...uploadedUrlsList]);
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -171,7 +221,13 @@ export function CreatePostForm() {
   };
 
   const handleRemoveMedia = (id: string) => {
-    setMedia((prev) => prev.filter((m) => m.id !== id));
+    setMedia((prev) => {
+      const itemToRemove = prev.find((m) => m.id === id);
+      if (itemToRemove && 'url' in itemToRemove) {
+        setUploadedUrls((urls) => urls.filter((u) => u !== (itemToRemove as any).url));
+      }
+      return prev.filter((m) => m.id !== id);
+    });
   };
 
   const handleReorderMedia = (newMedia: MediaItem[]) => {
@@ -209,50 +265,40 @@ export function CreatePostForm() {
 
   const isAtMaxCapacity = media.length >= MAX_MEDIA_ITEMS;
 
-  // Custom form submit to add media files to FormData
+  // Submit form with only text and media URLs (no files)
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formRef.current) return;
+    if (isSubmitting) return;
 
-    // Create a new FormData to include both text and media files
-    const formData = new FormData();
-    formData.append('textContent', textContent);
-
-    // Add media files to the form data
-    for (let i = 0; i < media.length; i++) {
-      formData.append('media', media[i].file, `media-${i}`);
-    }
-
-    // Submit using the form's action
-    const form = formRef.current;
-    const method = form.method.toUpperCase();
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(form.action || form.getAttribute('action') || '', {
-        method,
+      // Create FormData with text content and media URLs (not files)
+      const formData = new FormData();
+      formData.append('textContent', textContent);
+
+      // Add Cloudinary URLs only
+      for (const url of uploadedUrls) {
+        formData.append('mediaUrl', url);
+      }
+
+      const response = await fetch(formRef.current.action || '', {
+        method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
-        // The server should redirect on success, but in case it returns JSON
-        const contentType = response.headers.get('content-type');
-        if (contentType?.includes('application/json')) {
-          const data = await response.json();
-          if (data.redirectUrl) {
-            window.location.href = data.redirectUrl;
-          } else {
-            window.location.href = '/posts';
-          }
-        } else {
-          // Server redirected, let it handle navigation
-          window.location.href = response.url || '/posts';
-        }
+        // Navigate to posts page or the new post
+        window.location.href = '/posts';
       } else {
         const error = await response.json();
         console.error('Form submission error:', error);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -265,12 +311,8 @@ export function CreatePostForm() {
         <form
           ref={formRef}
           method="post"
-          encType="multipart/form-data"
           className="space-y-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleFormSubmit(e);
-          }}
+          onSubmit={handleFormSubmit}
         >
           {/* Text Content */}
           <div>
@@ -348,7 +390,7 @@ export function CreatePostForm() {
               className="cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Tip: You can crop images before uploading and drag to reorder
+              Files upload directly to cloud storage (no server bottleneck)
             </p>
           </div>
 
@@ -357,14 +399,22 @@ export function CreatePostForm() {
             <Button
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-700"
-              disabled={textContent.trim().length === 0 && media.length === 0}
+              disabled={textContent.trim().length === 0 && media.length === 0 || isSubmitting}
             >
-              Create Post
+              {isSubmitting ? (
+                <>
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Post...
+                </>
+              ) : (
+                'Create Post'
+              )}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => window.history.back()}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>

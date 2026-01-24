@@ -64,10 +64,12 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
             isCurrentUser ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
           }`}
         >
-          {new Date(message.sentAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {(() => {
+            const date = new Date(message.sentAt);
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+          })()}
         </p>
       </div>
     </div>

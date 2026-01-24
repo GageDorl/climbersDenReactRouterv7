@@ -1,6 +1,7 @@
 import type { Route } from "./+types/auth.login";
 import { redirect } from "react-router";
 import { Form, useNavigation, useSearchParams } from "react-router";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -19,25 +20,23 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 };
 
 export const action = async ({ request }: Route.ActionArgs) => {
+  console.log("[Login] Action called with method:", request.method);
+  
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   const formData = await request.formData();
-  const emailOrUsername = formData.get("emailOrUsername");
-  const password = formData.get("password");
+  console.log("[Login Debug] FormData entries:");
+  for (const [key, value] of formData.entries()) {
+    console.log(`  ${key}: ${value}`);
+  }
+  
+  const emailOrUsername = String(formData.get("emailOrUsername") || "");
+  const password = String(formData.get("password") || "");
   const redirectTo = (formData.get("redirectTo") as string) || "/posts";
 
-  // Debug: check what we're getting
-  console.log("[Login] Form data:", { emailOrUsername, password });
-
-  // Check if fields are null
-  if (!emailOrUsername || !password) {
-    return {
-      error: "Email/username and password are required",
-      fields: { emailOrUsername: emailOrUsername as string },
-    };
-  }
+  console.log("[Login Debug] Parsed values:", { emailOrUsername, password, redirectTo });
 
   // Validate input
   const result = loginSchema.safeParse({ emailOrUsername, password });
@@ -122,7 +121,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
                 required
                 autoComplete="username"
                 placeholder="your@email.com or username"
-                defaultValue={actionData?.fields?.emailOrUsername as string}
+                defaultValue={actionData?.fields?.emailOrUsername || ""}
                 disabled={isSubmitting}
               />
             </div>

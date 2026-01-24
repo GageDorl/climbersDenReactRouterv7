@@ -16,26 +16,44 @@ interface MessageThreadProps {
   currentUserId: string;
   onLoadOlder?: () => void;
   hasMore?: boolean;
+  isLoadingOlder?: boolean;
 }
 
-export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore }: MessageThreadProps) {
+export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, isLoadingOlder }: MessageThreadProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const prevScrollHeight = useRef<number>(0);
+  const shouldScrollToBottom = useRef<boolean>(true);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom only for new messages, not when loading older ones
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollToBottom.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Maintain scroll position when loading older messages
+      const container = messagesContainerRef.current;
+      if (container) {
+        const newScrollHeight = container.scrollHeight;
+        const scrollDiff = newScrollHeight - prevScrollHeight.current;
+        container.scrollTop = container.scrollTop + scrollDiff;
+        prevScrollHeight.current = newScrollHeight;
+      }
+    }
+    shouldScrollToBottom.current = true;
   }, [messages]);
 
   // Handle scroll to load older messages
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
-    if (!container || !onLoadOlder || !hasMore) return;
+    if (!container || !onLoadOlder || !hasMore || isLoadingOlder) return;
 
-    if (container.scrollTop < 100) {
+    // Load older messages when scrolling near the top
+    if (container.scrollTop < 200) {
+      shouldScrollToBottom.current = false;
+      prevScrollHeight.current = container.scrollHeight;
       onLoadOlder();
     }
-  }, [onLoadOlder, hasMore]);
+  }, [onLoadOlder, hasMore, isLoadingOlder]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -49,12 +67,21 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore }:
     <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-6">
       <div className="mx-auto max-w-4xl space-y-4">
         {hasMore && (
-          <button
-            onClick={onLoadOlder}
-            className="mx-auto block text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            Load older messages
-          </button>
+          <div className="text-center py-4">
+            {isLoadingOlder ? (
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>
+                <span>Loading older messages...</span>
+              </div>
+            ) : (
+              <button
+                onClick={onLoadOlder}
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+              >
+                Load older messages
+              </button>
+            )}
+          </div>
         )}
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center text-center">

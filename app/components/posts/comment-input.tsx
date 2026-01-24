@@ -40,15 +40,17 @@ export const CommentInput = forwardRef<HTMLTextAreaElement, CommentInputProps>(
 
     if (!text) return;
 
+    const formData = new FormData();
+    formData.append('textContent', text);
+    if (parentCommentId) {
+      formData.append('parentCommentId', parentCommentId);
+    }
+
     fetcher.submit(
-      {
-        textContent: text,
-        parentCommentId: parentCommentId || null,
-      },
+      formData,
       {
         method: 'POST',
         action: `/api/posts/${postId}/comments/new`,
-        encType: 'application/json',
       }
     );
   };
