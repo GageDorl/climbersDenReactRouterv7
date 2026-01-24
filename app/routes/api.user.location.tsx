@@ -30,18 +30,20 @@ export async function action({ request }: Route.ActionArgs) {
 
   const { latitude, longitude, granted } = result.data;
 
-  // Get current user to check rate limiting
+  // Get current user to check rate limiting and current permission state
   const currentUser = await db.user.findUnique({
     where: { id: userId },
-    select: { lastLocationUpdate: true },
+    select: { lastLocationUpdate: true, locationPermissionGranted: true },
   });
 
   if (!currentUser) {
     return Response.json({ error: "User not found" }, { status: 404 });
   }
 
-  // Rate limit: Only allow update if > 5 minutes since last update
-  if (currentUser.lastLocationUpdate && granted) {
+  // Rate limit: Only apply when the user is already sharing location and
+  // is attempting to update it. If the user previously had location disabled
+  // and is now enabling it, do not rate limit.
+  if (currentUser.lastLocationUpdate && granted && currentUser.locationPermissionGranted) {
     const timeSinceLastUpdate = Date.now() - currentUser.lastLocationUpdate.getTime();
     const fiveMinutesMs = 5 * 60 * 1000;
 

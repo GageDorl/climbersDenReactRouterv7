@@ -18,6 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       latitude: true,
       longitude: true,
       locationPermissionGranted: true,
+      displayName: true,
     },
   });
 
@@ -53,11 +54,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     hasLocationPermission: user.locationPermissionGranted,
     totalFound: nearbyUsers.length,
+    currentUsername: user.displayName,
   };
 }
 
 export default function DiscoverNearby({ loaderData }: Route.ComponentProps) {
-  const { nearbyUsers, hasLocationPermission, totalFound } = loaderData;
+  const { nearbyUsers, hasLocationPermission, totalFound, currentUsername } = loaderData;
 
   return (
     <div className="min-h-screen py-8" style={{background: 'linear-gradient(to bottom, var(--surface), var(--background))'}}>
@@ -78,7 +80,7 @@ export default function DiscoverNearby({ loaderData }: Route.ComponentProps) {
               Enable location sharing in your profile settings to discover nearby climbers.
             </p>
             <a
-              href="/users/edit"
+              href={currentUsername ? `/users/${currentUsername}/edit` : '/users/search'}
               className="btn-primary inline-block px-6 py-2 rounded-md text-sm font-medium"
             >
               Enable Location

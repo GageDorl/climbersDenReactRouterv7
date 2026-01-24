@@ -104,7 +104,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const { conversationId } = params;
 
   const formData = await request.formData();
-  const textContent = formData.get("textContent") as string;
+  let textContent = formData.get("textContent") as string | null;
   const postIdField = (formData.get('postId') as string) || null;
 
   // Get media URLs: support both client-provided `mediaUrl` strings and

@@ -9,6 +9,7 @@ interface CragsMapSectionProps {
   userLocationPermissionGranted: boolean;
   userLatitude: number | null;
   userLongitude: number | null;
+  currentUsername?: string | null;
 }
 
 /**
@@ -19,6 +20,7 @@ export function CragsMapSection({
   userLocationPermissionGranted,
   userLatitude,
   userLongitude,
+  currentUsername,
 }: CragsMapSectionProps) {
   // If location is not enabled, show message
   if (!userLocationPermissionGranted) {
@@ -35,7 +37,7 @@ export function CragsMapSection({
               <p className="text-sm text-muted mb-4">
                 Share your location to view climbing areas on a map and discover new crags in your area.
               </p>
-              <Link to="/users/me/edit">
+              <Link to={currentUsername ? `/users/${currentUsername}/edit` : '/users/search'}>
                 <Button size="sm" variant="outline">
                   <MapPin className="h-4 w-4 mr-2" />
                   Enable Location

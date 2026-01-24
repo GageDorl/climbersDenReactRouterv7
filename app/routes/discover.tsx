@@ -203,6 +203,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
           userLocationPermissionGranted={userLocationPermissionGranted}
           userLatitude={userLatitude}
           userLongitude={userLongitude}
+          currentUsername={currentUserDisplayName}
         />
 
         {/* Suggested Users Section */}

@@ -249,19 +249,15 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Cloudinary error:', response.status, errorText);
-        
+
         // Parse Cloudinary error for better user feedback
-        let errorMessage = `Upload failed: ${response.status}`;
         try {
           const errorData = JSON.parse(errorText);
-          if (errorData.error?.message) {
-            errorMessage = errorData.error.message;
-          }
+          const cloudMsg = errorData.error?.message || `Upload failed: ${response.status}`;
+          throw new Error(cloudMsg);
         } catch (parseError) {
-          // Use default error message if parsing fails
+          throw new Error(`Upload failed: ${response.status}`);
         }
-        
-        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -269,7 +265,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       return data.secure_url;
     } catch (error) {
       console.error('Profile photo upload error:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -338,36 +334,46 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       setCropperOpen(false);
       setCropperImage('');
       
-      // Compress the cropped image if it's too large
+      // Compress the cropped image until it's under Cloudinary's limit (10MB), try several passes
+      const CLOUDINARY_MAX = 10 * 1024 * 1024; // 10MB
       let finalFile = croppedFile;
-      if (croppedFile.size > 8 * 1024 * 1024) { // 8MB threshold
-        console.log('File too large, compressing...', croppedFile.size);
-        setIsUploadingImage(true); // Show compression as part of upload
-        try {
-          finalFile = await compressImage(croppedFile, 8, 0.8);
-          console.log('Compression successful:', finalFile.size);
-        } catch (compressionError) {
-          console.error('Compression failed:', compressionError);
-          alert('Image is too large and compression failed. Please try a smaller image.');
+      if (finalFile.size > CLOUDINARY_MAX) {
+        setIsUploadingImage(true);
+        const attempts = [ { maxDim: 800, quality: 0.8 }, { maxDim: 700, quality: 0.7 }, { maxDim: 600, quality: 0.6 } ];
+        let compressed: File | null = null;
+        for (const attempt of attempts) {
+          try {
+            compressed = await compressImage(finalFile, attempt.maxDim, attempt.quality);
+            console.log(`Compression attempt (dim=${attempt.maxDim},q=${attempt.quality}) produced size:`, compressed.size);
+            finalFile = compressed;
+            if (finalFile.size <= CLOUDINARY_MAX) break;
+          } catch (e) {
+            console.warn('Compression attempt failed', e);
+          }
+        }
+
+        if (finalFile.size > CLOUDINARY_MAX) {
+          setIsUploadingImage(false);
+          console.error('Compressed image still exceeds limit:', finalFile.size);
+          alert('Image is too large even after compression. Please choose a smaller image (under 10MB).');
           setProfilePhotoUrl(user.profilePhotoUrl || '');
           return;
         }
       }
-      
+
       // Upload to Cloudinary
       setIsUploadingImage(true);
-      const uploadedUrl = await uploadToCloudinary(finalFile);
-      
-      if (uploadedUrl) {
+      try {
+        const uploadedUrl = await uploadToCloudinary(finalFile);
         console.log('Upload successful:', uploadedUrl);
         setProfilePhotoUrl(uploadedUrl);
-      } else {
-        console.error('Upload failed');
+      } catch (err: any) {
+        console.error('Upload failed:', err);
         setProfilePhotoUrl(user.profilePhotoUrl || '');
-        alert('Upload failed. Please try again.');
+        alert(err?.message || 'Upload failed. Please try again.');
+      } finally {
+        setIsUploadingImage(false);
       }
-    } catch (error) {
-      console.error('Profile upload error:', error);
       setProfilePhotoUrl(user.profilePhotoUrl || '');
       
       // Better error messages based on error type

@@ -1,3 +1,5 @@
+"use client";
+
 import { useFetcher } from 'react-router';
 import { useGeolocation } from '~/hooks/use-geolocation';
 import { useState, useEffect, useRef } from 'react';
@@ -22,7 +24,7 @@ export function LocationSettings({
   locationPermissionGranted = false,
   onLocationUpdate,
 }: LocationSettingsProps) {
-  const { position, requestLocation, loading } = useGeolocation();
+  const { position, requestLocation, loading, error } = useGeolocation();
   const fetcher = useFetcher();
   const [isLocationEnabled, setIsLocationEnabled] = useState(locationPermissionGranted);
   const lastSubmittedPosRef = useRef<{ lat: number; lon: number } | null>(null);
@@ -57,6 +59,9 @@ export function LocationSettings({
       }
     );
 
+    // Mark location as enabled only when we have a successful position
+    setIsLocationEnabled(true);
+
     onLocationUpdate?.(position.latitude, position.longitude);
   }, [position]);
 
@@ -78,7 +83,6 @@ export function LocationSettings({
     } else {
       // Enable location - request from device
       requestLocation();
-      setIsLocationEnabled(true);
     }
   };
 
@@ -174,9 +178,15 @@ export function LocationSettings({
         {/* Error Message */}
         {fetcher.data?.error && (
           <div className="rounded-lg alert-destructive p-3">
-            <p className="text-xs text-destructive">
+            <p className="text-xs text-white">
               {fetcher.data.error}
             </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg alert-destructive p-3">
+            <p className="text-xs text-white">{error.message}</p>
           </div>
         )}
 
