@@ -10,4 +10,8 @@ export default defineConfig({
   port: 3002,
   allowedHosts: ["climbersden.gagedorl.com"],
   },
+  ssr: {
+    noExternal: [],
+    external: ['heic2any']
+  }
 });

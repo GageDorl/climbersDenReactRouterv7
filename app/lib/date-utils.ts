@@ -28,10 +28,15 @@ export function formatDateTime(date: Date | string): string {
   const month = months[d.getMonth()];
   const day = d.getDate();
   const year = d.getFullYear();
-  const hours = d.getHours().toString().padStart(2, '0');
-  const minutes = d.getMinutes().toString().padStart(2, '0');
   
-  return `${month} ${day}, ${year} ${hours}:${minutes}`;
+  // Convert to 12-hour format
+  let hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 should be 12
+  
+  return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
 }
     hour: '2-digit',
     minute: '2-digit',
