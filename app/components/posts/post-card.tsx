@@ -7,6 +7,7 @@ import { DoubleTapHeart } from './double-tap-heart';
 import { useSocket } from '~/hooks/use-socket';
 import { useDoubleTap } from '~/hooks/use-double-tap';
 import { useHapticFeedback } from '~/hooks/use-haptic-feedback';
+import { ClickableProfilePicture } from '~/components/ui/clickable-profile-picture';
 import type { Comment, User } from '~/types/db';
 
 interface PostCardProps {
@@ -181,10 +182,11 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {post.user.profilePhotoUrl ? (
-              <img
+              <ClickableProfilePicture
                 src={post.user.profilePhotoUrl}
                 alt={post.user.displayName}
-                className="w-10 h-10 rounded-full object-cover"
+                size="md"
+                username={post.user.displayName}
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
@@ -205,9 +207,15 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                   const month = months[date.getMonth()];
                   const day = date.getDate();
                   const year = date.getFullYear();
-                  const hours = date.getHours().toString().padStart(2, '0');
+                  
+                  // Convert to 12-hour format
+                  let hours = date.getHours();
                   const minutes = date.getMinutes().toString().padStart(2, '0');
-                  return `${month} ${day}, ${year} ${hours}:${minutes}`;
+                  const ampm = hours >= 12 ? 'PM' : 'AM';
+                  hours = hours % 12;
+                  hours = hours ? hours : 12; // 0 should be 12
+                  
+                  return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
                 })()}
               </p>
             </div>

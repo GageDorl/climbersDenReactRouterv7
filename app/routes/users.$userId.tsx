@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { FollowButton } from "~/components/profile/follow-button";
 import { PageWrapper } from "~/components/ui/page-wrapper";
+import { ClickableProfilePicture } from "~/components/ui/clickable-profile-picture";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const currentUserId = await getUserId(request);
@@ -78,10 +79,11 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 {user.profilePhotoUrl ? (
-                  <img
+                  <ClickableProfilePicture
                     src={user.profilePhotoUrl}
                     alt={user.displayName}
-                    className="w-20 h-20 rounded-full object-cover"
+                    size="xl"
+                    username={user.displayName}
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-full bg-blue-500 dark:bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
