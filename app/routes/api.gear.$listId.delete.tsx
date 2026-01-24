@@ -15,5 +15,5 @@ export async function action({ params, request }: any) {
     await tx.gearList.delete({ where: { id: listId } });
   });
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 303, headers: { Location: '/gear' } });
 }

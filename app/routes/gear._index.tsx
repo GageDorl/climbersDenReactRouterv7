@@ -3,6 +3,7 @@ import { Link, useLoaderData } from "react-router";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { PageWrapper } from "~/components/ui/page-wrapper";
+import { formatDate } from "~/lib/date-utils";
 
 export async function loader({ request }: any) {
   const userId = await requireUserId(request);
@@ -36,7 +37,7 @@ export default function GearIndex() {
       </div>
 
       {gearLists.length === 0 ? (
-        <div className="rounded-lg bg-surface p-8 text-center shadow">
+        <div className="rounded-lg bg-secondary border-default p-8 text-center shadow">
           <p className="text-sm text-secondary">You haven't created or joined any gear lists yet.</p>
           <Link to="/gear/new" className="mt-4 inline-block rounded-lg btn-primary px-4 py-2 text-sm font-medium">
             Create one
@@ -45,11 +46,18 @@ export default function GearIndex() {
       ) : (
         <div className="grid gap-3">
           {gearLists.map((list: any) => (
-            <Link key={list.id} to={`/gear/${list.id}`} className="block rounded-lg bg-surface p-4 shadow hover:shadow-md">
+            <Link key={list.id} to={`/gear/${list.id}`} className="block rounded-lg bg-secondary p-4 shadow hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-primary">{list.name}</p>
-                  <p className="text-xs text-secondary truncate">{list.description}</p>
+                  {list.tripDate ? (
+                    <p className="text-xs text-secondary">Trip: {formatDate(list.tripDate)}</p>
+                  ) : (
+                    <p className="text-xs text-secondary truncate">{list.description}</p>
+                  )}
+                  {list.description && list.tripDate && (
+                    <p className="text-xs text-secondary truncate">{list.description}</p>
+                  )}
                 </div>
                 <div className="text-xs text-muted">{list.gearItems?.length || 0} items</div>
               </div>

@@ -111,7 +111,7 @@ export default function GearItem({ item, gearListId, currentUserId }: Props) {
   const maxForUser = userOwnCount + Math.max(0, remaining);
 
   return (
-    <div className="flex items-center justify-between rounded bg-surface p-3">
+    <div className="flex items-center justify-between rounded-md bg-surface p-3">
       <div>
         <p className="font-medium text-primary">{item.itemName}</p>
         <p className="text-xs text-secondary">{state.quantityClaimed}/{state.quantityNeeded} claimed</p>
@@ -125,14 +125,14 @@ export default function GearItem({ item, gearListId, currentUserId }: Props) {
         {state.quantityNeeded === 1 ? (
           // single-quantity item
           userOwnCount > 0 ? (
-            <button onClick={() => { handleClaimToggle(0); }} disabled={state.loading} className="rounded px-3 py-1 btn-ghost">
+            <button onClick={() => { handleClaimToggle(0); }} disabled={state.loading} className="rounded px-3 py-1 btn-destructive">
               {state.loading ? '...' : 'Unclaim'}
             </button>
           ) : (
             remaining <= 0 ? (
               <div className="text-sm text-muted">Fully claimed</div>
             ) : (
-              <button onClick={() => { handleClaimToggle(1); }} disabled={state.loading} className="rounded px-3 py-1 btn-ghost">
+              <button onClick={() => { handleClaimToggle(1); }} disabled={state.loading} className="rounded px-3 py-1 btn-primary">
                 {state.loading ? '...' : 'Claim'}
               </button>
             )
@@ -168,15 +168,17 @@ export default function GearItem({ item, gearListId, currentUserId }: Props) {
                 const desiredNumRaw = inputValue === '' ? 0 : (parseInt(inputValue, 10) || 0);
                 const desiredNum = Math.max(0, Math.min(maxForUser, desiredNumRaw));
                 let label = 'Claim';
+                let buttonClass = 'btn-primary';
                 if (state.loading) label = '...';
                 else if (userOwnCount > 0) {
                   label = desiredNum === 0 ? 'Unclaim' : (desiredNum !== userOwnCount ? 'Change' : 'Unclaim');
+                    buttonClass = desiredNum === 0 ? 'btn-destructive' : (desiredNum !== userOwnCount ? 'btn-primary' : 'btn-destructive');
                 } else {
                   label = desiredNum > 0 ? 'Claim' : 'Claim';
                 }
                 const disabled = state.loading || (!userOwnCount && desiredNum === 0);
                 return (
-                  <button onClick={() => handleClaimToggle(desiredNum)} disabled={disabled} className="rounded px-3 py-1 btn-ghost">
+                  <button onClick={() => handleClaimToggle(desiredNum)} disabled={disabled} className={`rounded px-3 py-1 ${buttonClass}`}>
                     {label}
                   </button>
                 );

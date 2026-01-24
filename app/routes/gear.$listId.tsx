@@ -5,6 +5,9 @@ import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { PageWrapper } from "~/components/ui/page-wrapper";
 import GearItem from '~/components/gear/gear-item';
+import { formatDate } from "~/lib/date-utils";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
 
 export async function loader({ params, request }: any) {
   const userId = await requireUserId(request);
@@ -51,65 +54,144 @@ export default function GearDetails() {
   const [editing, setEditing] = React.useState(false);
   const [name, setName] = React.useState(gearList.name || '');
   const [description, setDescription] = React.useState(gearList.description || '');
+  const prevFetcherStateRef = React.useRef<string>(fetcher.state);
+  const [tripDate, setTripDate] = React.useState<string>(() => {
+    if (!gearList.tripDate) return '';
+    const d = new Date(gearList.tripDate);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
+
+  React.useEffect(() => {
+    if (prevFetcherStateRef.current === 'submitting' && fetcher.state === 'idle') {
+      setEditing(false);
+    }
+    prevFetcherStateRef.current = fetcher.state;
+  }, [fetcher.state]);
 
   return (
     <PageWrapper maxWidth="4xl">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-primary">{gearList.name}</h1>
-        <div className="text-sm text-secondary">{gearList.participantIds?.length || 0} participants</div>
-      </div>
+      <div className="mb-4">
+          <div className="flex items-center justify-between gap-5">
+          <div className="flex-1">
+            {!editing ? (
+              <>
+                <h1 className="text-2xl font-bold text-primary">{name}</h1>
+                {gearList.tripDate && (
+                  <div className="text-sm text-secondary">Trip date: {formatDate(gearList.tripDate)}</div>
+                )}
+                {description && (
+                  <p className="text-sm text-secondary mb-4">{description}</p>
+                )}
+              </>
+            ) : (
+              <div className="space-y-3 w-full">
+                <div>
+                  <input name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="List name" className="block w-full rounded border px-3 py-2" />
+                </div>
+                <div>
+                  <input type="date" name="tripDate" value={tripDate} onChange={(e) => setTripDate(e.target.value)} className="block rounded border px-3 py-2" />
+                </div>
+                <div>
+                  <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" className="block w-full rounded border px-3 py-2" />
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
 
-      <p className="text-sm text-secondary mb-4">{gearList.description}</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="text-sm text-secondary">{gearList.participantIds?.length || 0} participants</button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Participants</DialogTitle>
+                </DialogHeader>
+                <div className="mt-2">
+                  <ParticipantList participants={participantUsers} currentUserId={userId} gearList={gearList} />
+                  <div className="mt-4">
+                    <AddParticipantForm gearListId={gearList.id} participantIds={gearList.participantIds || []} />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+                        {isCreator && (
+              <>
+                {!editing ? (
+                  <>
+                    <button onClick={() => setEditing(true)} className="rounded-lg btn-primary px-3 py-2">Edit List</button>
+                    <form method="post" action={`/api/gear/${gearList.id}/delete`}>
+                      <button type="submit" className="rounded-lg btn-destructive px-3 py-2">Delete List</button>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        const body = new URLSearchParams();
+                        body.append('name', name);
+                        body.append('description', description);
+                        body.append('tripDate', tripDate);
+                        try {
+                          const res = await fetch(`/api/gear/${gearList.id}/edit`, { method: 'POST', body });
+                          if (res.ok) {
+                            window.location.reload();
+                          } else {
+                            console.error('Save failed', await res.text());
+                          }
+                        } catch (err) {
+                          console.error('Save error', err);
+                        }
+                      }}
+                      className="rounded-lg btn-primary px-3 py-2"
+                    >
+                      Save
+                    </button>
+                    <button onClick={() => { setEditing(false); setName(gearList.name || ''); setDescription(gearList.description || ''); setTripDate(() => {
+                      if (!gearList.tripDate) return '';
+                      const d = new Date(gearList.tripDate);
+                      const yyyy = d.getFullYear();
+                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                      const dd = String(d.getDate()).padStart(2, '0');
+                      return `${yyyy}-${mm}-${dd}`;
+                    }); }} className="rounded-lg px-3 py-2 text-sm text-secondary">Cancel</button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-3">
         {gearList.gearItems.map((item: any) => (
-          <div key={item.id} className="flex items-start justify-between">
-            <div className="flex-1">
-              <GearItem item={item} gearListId={gearList.id} currentUserId={userId} />
-            </div>
+          <div key={item.id} className="flex items-center bg-secondary rounded-lg p-4">
             {isCreator && (
-              <div className="pl-3">
+              <div className="mr-3">
                 <fetcher.Form method="post" action={`/api/gear/items/${item.id}/delete`}>
-                  <button type="submit" className="text-sm text-danger">Remove</button>
+                  <button
+                    type="submit"
+                    aria-label="Remove item"
+                    title="Remove item"
+                    className="rounded-full btn-primary w-8 h-8 flex items-center justify-center"
+                  >
+                    ×
+                  </button>
                 </fetcher.Form>
               </div>
             )}
+            <div className="flex-1">
+              <GearItem item={item} gearListId={gearList.id} currentUserId={userId} />
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 rounded bg-surface p-4">
-        <h3 className="text-sm font-semibold text-primary mb-2">Participants</h3>
-        <ParticipantList participants={participantUsers} currentUserId={userId} gearList={gearList} />
-        {isCreator && (
-          <div className="mt-3">
-            <button onClick={() => setEditing((v) => !v)} className="text-sm text-primary mr-3">{editing ? 'Cancel' : 'Edit List'}</button>
-            <fetcher.Form method="post" action={`/api/gear/${gearList.id}/delete`} className="inline-block">
-              <button type="submit" className="text-sm text-danger">Delete List</button>
-            </fetcher.Form>
-          </div>
-        )}
-        <div className="mt-4">
-          <AddParticipantForm gearListId={gearList.id} participantIds={gearList.participantIds || []} />
-        </div>
-      </div>
-
-      {isCreator && editing && (
-        <div className="mt-6 rounded bg-surface p-4">
-          <h3 className="text-sm font-semibold text-primary mb-2">Edit List</h3>
-          <fetcher.Form method="post" action={`/api/gear/${gearList.id}/edit`} className="space-y-3">
-            <div>
-              <input name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="List name" className="block w-full rounded border px-3 py-2" />
-            </div>
-            <div>
-              <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" className="block w-full rounded border px-3 py-2" />
-            </div>
-            <div>
-              <button type="submit" className="rounded-lg btn-primary px-4 py-2">Save</button>
-            </div>
-          </fetcher.Form>
-        </div>
-      )}
+      
 
       <div className="mt-6 rounded bg-surface p-4">
         <h3 className="text-sm font-semibold text-primary mb-2">Add Item</h3>
@@ -141,8 +223,10 @@ function AddItemForm({ gearListId }: { gearListId: string }) {
 function AddParticipantForm({ gearListId, participantIds }: { gearListId: string, participantIds: string[] }) {
   const [queryState, setQueryState] = React.useState('');
   const [clientResults, setClientResults] = React.useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = React.useState<any | null>(null);
+  const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
+  const [searching, setSearching] = React.useState(false);
+  const lastQueryRef = React.useRef<string>('');
   const debounceRef = React.useRef<number | null>(null);
   const abortRef = React.useRef<AbortController | null>(null);
 
@@ -156,18 +240,26 @@ function AddParticipantForm({ gearListId, participantIds }: { gearListId: string
     debounceRef.current = window.setTimeout(async () => {
       if (abortRef.current) abortRef.current.abort();
       abortRef.current = new AbortController();
+      setSearching(true);
       try {
         const res = await fetch(`/api/users/search?q=${encodeURIComponent(queryState)}`, {
           signal: abortRef.current.signal,
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          setSearching(false);
+          return;
+        }
         const data = await res.json();
         // exclude users already in participantIds
         const users = (data.users || []).filter((u: any) => !(participantIds || []).includes(u.id));
         setClientResults(users);
+        // mark that we've searched for this query
+        lastQueryRef.current = queryState;
+        setSearching(false);
       } catch (err) {
         if ((err as any).name === 'AbortError') return;
         console.error('User search failed', err);
+        setSearching(false);
       }
     }, 250);
 
@@ -177,82 +269,96 @@ function AddParticipantForm({ gearListId, participantIds }: { gearListId: string
     };
   }, [queryState]);
 
-  async function confirmAdd(userId: string) {
+  async function addSelected() {
+    if (selectedUsers.length === 0) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/gear/${gearListId}/participants`, {
+      const promises = selectedUsers.map((u) => fetch(`/api/gear/${gearListId}/participants`, {
         method: 'POST',
-        body: new URLSearchParams({ participantId: userId }),
-      });
-      if (res.ok) {
+        body: new URLSearchParams({ participantId: u.id }),
+      }));
+      const results = await Promise.all(promises);
+      const ok = results.every((r) => r.ok);
+      if (ok) {
         window.location.reload();
       } else {
-        const body = await res.json().catch(() => null);
-        console.error('Add participant failed', body || await res.text());
+        console.error('One or more adds failed', results);
         setSubmitting(false);
       }
     } catch (err) {
-      console.error('Add participant error', err);
+      console.error('Add participants error', err);
       setSubmitting(false);
     }
   }
 
   return (
     <div>
-      {!selectedUser ? (
-        <div>
-          <div className="mb-2">
-            <input
-              value={queryState}
-              onChange={(e) => setQueryState(e.target.value)}
-              placeholder="Search users by name..."
-              className="block w-full rounded border px-3 py-2"
-              autoComplete="off"
-            />
-          </div>
-          {clientResults.length > 0 && (
-            <div className="space-y-2">
-              {clientResults.map((user) => (
-                <button
-                  key={user.id}
-                  onClick={() => setSelectedUser(user)}
-                  className="flex w-full items-center space-x-3 rounded-lg p-3 text-left hover:bg-secondary"
-                >
-                  {user.profilePhotoUrl ? (
-                    <img src={user.profilePhotoUrl} alt={user.displayName} className="h-10 w-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-surface">
-                      {user.displayName[0].toUpperCase()}
-                    </div>
-                  )}
-                  <span className="font-medium text-primary">{user.displayName}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {queryState && clientResults.length === 0 && (
-            <p className="text-sm text-muted">No users found matching "{queryState}"</p>
-          )}
+      <div>
+        <div className="mb-2">
+          <input
+            value={queryState}
+            onChange={(e) => setQueryState(e.target.value)}
+            placeholder="Search users by name..."
+            className="block w-full rounded border px-3 py-2"
+            autoComplete="off"
+          />
         </div>
-      ) : (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {selectedUser.profilePhotoUrl ? (
-              <img src={selectedUser.profilePhotoUrl} alt={selectedUser.displayName} className="h-10 w-10 rounded-full object-cover" />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-surface">{selectedUser.displayName[0].toUpperCase()}</div>
-            )}
-            <div>
-              <div className="font-medium">{selectedUser.displayName}</div>
-              <div className="text-xs text-muted">{selectedUser.id}</div>
-            </div>
+
+        {selectedUsers.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {selectedUsers.map((u) => (
+              <div key={u.id} className="flex items-center gap-2 rounded-full bg-muted/20 px-3 py-1">
+                {u.profilePhotoUrl ? (
+                  <img src={u.profilePhotoUrl} alt={u.displayName} className="h-6 w-6 rounded-full object-cover" />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-accent text-surface flex items-center justify-center text-xs">{u.displayName[0].toUpperCase()}</div>
+                )}
+                <span className="text-sm font-medium">{u.displayName}</span>
+                <button onClick={() => setSelectedUsers((s) => s.filter(x => x.id !== u.id))} className="text-sm text-secondary">×</button>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setSelectedUser(null)} className="text-sm text-secondary">Change</button>
-            <button onClick={() => confirmAdd(selectedUser.id)} disabled={submitting} className="rounded-lg btn-primary px-4 py-2">{submitting ? 'Adding…' : 'Add'}</button>
+        )}
+
+        {clientResults.length > 0 && (
+          <div className="space-y-2">
+            {clientResults.map((user) => (
+              <button
+                key={user.id}
+                onClick={() => {
+                  setSelectedUsers((s) => (s.find(x => x.id === user.id) ? s : [...s, user]));
+                  setQueryState('');
+                  setClientResults((r) => r.filter((x) => x.id !== user.id));
+                }}
+                className="flex w-full items-center space-x-3 rounded-lg p-3 text-left hover:bg-secondary"
+              >
+                {user.profilePhotoUrl ? (
+                  <img src={user.profilePhotoUrl} alt={user.displayName} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-surface">
+                    {user.displayName[0].toUpperCase()}
+                  </div>
+                )}
+                <span className="font-medium text-primary">{user.displayName}</span>
+                <span className="text-xs text-muted ml-auto">Add</span>
+              </button>
+            ))}
           </div>
+        )}
+
+        {queryState && !searching && clientResults.length === 0 && lastQueryRef.current === queryState && (
+          <p className="text-sm text-muted">No users found matching "{queryState}"</p>
+        )}
+
+        {!queryState && (
+          <p className="text-sm text-muted">Type at least 2 characters to search for users</p>
+        )}
+
+        <div className="mt-3 flex items-center gap-2">
+          <button onClick={addSelected} disabled={submitting || selectedUsers.length === 0} className="rounded-lg btn-primary px-4 py-2">{submitting ? 'Adding…' : `Add ${selectedUsers.length} user${selectedUsers.length !== 1 ? 's' : ''}`}</button>
+          <button onClick={() => { setSelectedUsers([]); setQueryState(''); setClientResults([]); }} className="text-sm text-secondary">Clear</button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -267,8 +373,12 @@ function ParticipantList({ participants, currentUserId, gearList }: any) {
       {participants.map((p: any) => (
         <div key={p.id} className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {p.profilePhotoUrl ? (
+              <img src={p.profilePhotoUrl} alt={p.displayName} className="h-8 w-8 rounded-full object-cover" />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-accent text-surface flex items-center justify-center">{p.displayName[0].toUpperCase()}</div>
+            )}
             <div className="text-sm">{p.displayName}</div>
-            <div className="text-xs text-muted">{p.id}</div>
           </div>
           {isCreator && p.id !== gearList.creatorId && (
             <fetcher.Form method="post" action={`/api/gear/${gearList.id}/participants/${p.id}/remove`}>

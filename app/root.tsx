@@ -126,6 +126,7 @@ export default function App() {
       <Navbar 
         userId={user?.id} 
         displayName={user?.displayName} 
+        profilePhotoUrl={user?.profilePhotoUrl}
         unreadMessageCount={unreadMessageCount}
       />
       <Outlet />
