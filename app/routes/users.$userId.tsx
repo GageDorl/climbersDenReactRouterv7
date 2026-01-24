@@ -56,6 +56,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const isOwnProfile = currentUserId === user.id;
   const isFollowing = user.followers.length > 0;
+  // Does the profile user follow the current user? (so current user can "follow back")
+  const profileFollowsYou = !!(await db.follow.findFirst({ where: { followerId: user.id, followedId: currentUserId } }));
 
   return { 
     user: {
@@ -64,13 +66,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     },
     isOwnProfile,
     isFollowing,
+    profileFollowsYou,
     followerCount: user._count.followers,
     followingCount: user._count.following,
   };
 }
 
 export default function UserProfile({ loaderData }: Route.ComponentProps) {
-  const { user, isOwnProfile, isFollowing, followerCount, followingCount } = loaderData;
+  const { user, isOwnProfile, isFollowing, profileFollowsYou, followerCount, followingCount } = loaderData;
 
   return (
     <PageWrapper maxWidth="4xl">
@@ -103,10 +106,16 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
                     <Button variant="outline">Edit Profile</Button>
                   </Link>
                 ) : (
-                  <FollowButton 
-                    userId={user.id} 
-                    initialIsFollowing={isFollowing}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Link to={`/messages/new?to=${encodeURIComponent(user.displayName)}`}>
+                      <Button variant="outline">Message</Button>
+                    </Link>
+                    <FollowButton 
+                      userId={user.id} 
+                      initialIsFollowing={isFollowing}
+                      isFollower={profileFollowsYou}
+                    />
+                  </div>
                 )}
               </div>
             </div>

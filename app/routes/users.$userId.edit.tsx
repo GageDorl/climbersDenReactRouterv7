@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "~/components/ui/dialog";
 import { getUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
@@ -576,6 +576,34 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
           lastLocationUpdate={user.lastLocationUpdate?.toISOString()}
           locationPermissionGranted={user.locationPermissionGranted}
         />
+
+        {/* Danger Zone: Delete Account */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Danger Zone</CardTitle>
+            <CardDescription>Permanently delete your account and all associated data. This action cannot be undone.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="w-full">Delete Account</Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Delete Account</DialogTitle>
+                  <DialogDescription>This will permanently remove your account and cannot be undone. Are you sure?</DialogDescription>
+                </DialogHeader>
+                <div className="mt-6 flex justify-end space-x-2">
+                  <Form method="post" action="/api/user/delete">
+                    <Button type="button" variant="outline" onClick={() => window.history.back()} className="mr-2">Cancel</Button>
+                    <Button type="submit" variant="destructive">Yes, delete my account</Button>
+                  </Form>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
