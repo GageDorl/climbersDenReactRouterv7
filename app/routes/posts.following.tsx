@@ -147,7 +147,14 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
                         {post.user.displayName}
                       </a>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(post.createdAt).toLocaleDateString()}
+                        {(() => {
+                          const date = new Date(post.createdAt);
+                          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                          const month = months[date.getMonth()];
+                          const day = date.getDate();
+                          const year = date.getFullYear();
+                          return `${month} ${day}, ${year}`;
+                        })()}
                       </p>
                     </div>
                   </div>

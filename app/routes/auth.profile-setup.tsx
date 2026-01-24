@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { getUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
-import { uploadFileToCloudinary } from "~/lib/cloudinary.server";
+import { useState } from "react";
+import { ImageCropper } from "~/components/posts/image-cropper";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);
@@ -40,7 +41,7 @@ export async function action({ request }: Route.ActionArgs) {
   const bio = formData.get("bio");
   const climbingStyles = formData.getAll("climbingStyles");
   const experienceLevel = formData.get("experienceLevel");
-  const profilePhoto = formData.get("profilePhoto") as File | null;
+  const profilePhotoUrl = formData.get("profilePhotoUrl") as string | null;
 
   // Validate input
   const result = profileSetupSchema.safeParse({
@@ -71,20 +72,6 @@ export async function action({ request }: Route.ActionArgs) {
     };
   }
 
-  // Upload profile photo if provided
-  let profilePhotoUrl: string | undefined;
-  if (profilePhoto && profilePhoto.size > 0) {
-    try {
-      const result = await uploadFileToCloudinary(profilePhoto, "profile-photos");
-      profilePhotoUrl = result.secure_url;
-    } catch (error) {
-      return {
-        error: "Failed to upload profile photo. Please try again.",
-        fields: { displayName: validDisplayName, bio: validBio, climbingStyles: validStyles, experienceLevel: validLevel },
-      };
-    }
-  }
-
   // Update user profile
   await db.user.update({
     where: { id: userId },
@@ -93,7 +80,7 @@ export async function action({ request }: Route.ActionArgs) {
       bio: validBio,
       climbingStyles: validStyles,
       experienceLevel: validLevel,
-      profilePhotoUrl,
+      profilePhotoUrl: profilePhotoUrl || undefined,
     },
   });
 
@@ -103,6 +90,80 @@ export async function action({ request }: Route.ActionArgs) {
 export default function ProfileSetup({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImage, setCropperImage] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  /**
+   * Upload a file directly to Cloudinary using signed upload
+   */
+  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    try {
+      // Get upload signature from server
+      const configResponse = await fetch(`/api/upload/signature?folder=profile-photos&preset=profile`);
+      if (!configResponse.ok) {
+        throw new Error('Failed to get upload signature');
+      }
+
+      const { signature, timestamp, apiKey, cloudName, folder } = await configResponse.json();
+
+      // Prepare FormData with exactly the parameters that were signed
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('timestamp', timestamp.toString());
+      uploadFormData.append('signature', signature);
+      uploadFormData.append('api_key', apiKey);
+      uploadFormData.append('folder', folder);
+
+      // Upload to Cloudinary
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Cloudinary error:', response.status, error);
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Profile photo upload error:', error);
+      return null;
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCropperImage(event.target?.result as string);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropperSave = async (croppedImageUrl: string, croppedFile: File) => {
+    const uploadedUrl = await uploadToCloudinary(croppedFile);
+    if (uploadedUrl) {
+      setProfilePhotoUrl(uploadedUrl);
+    }
+    setCropperOpen(false);
+    setCropperImage('');
+  };
+
+  const handleCropperCancel = () => {
+    setCropperOpen(false);
+    setCropperImage('');
+    setSelectedFile(null);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4 py-8">
@@ -113,7 +174,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
             Tell the community about your climbing experience
           </CardDescription>
         </CardHeader>
-        <Form method="post" encType="multipart/form-data">
+        <Form method="post">
           <CardContent className="space-y-6">
             {actionData?.error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
@@ -146,14 +207,25 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
               />
             </div>
 
+            {/* Profile photo upload with cropper */}
             <div className="space-y-2">
               <Label htmlFor="profilePhoto">Profile Photo (optional)</Label>
               <Input
                 id="profilePhoto"
-                name="profilePhoto"
                 type="file"
                 accept="image/*"
+                onChange={handleFileSelect}
               />
+              {profilePhotoUrl && (
+                <div className="mt-2">
+                  <img
+                    src={profilePhotoUrl}
+                    alt="Profile preview"
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                  <input type="hidden" name="profilePhotoUrl" value={profilePhotoUrl} />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -205,6 +277,14 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
             </Button>
           </CardContent>
         </Form>
+
+        {/* Image cropper modal */}
+        <ImageCropper
+          isOpen={cropperOpen}
+          image={cropperImage}
+          onSave={handleCropperSave}
+          onCancel={handleCropperCancel}
+        />
       </Card>
     </div>
   );

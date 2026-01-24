@@ -157,7 +157,14 @@ export default function MessagesIndex() {
                         </p>
                         {lastMessage && (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(lastMessage.sentAt).toLocaleDateString()}
+                            {(() => {
+                              const date = new Date(lastMessage.sentAt);
+                              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                              const month = months[date.getMonth()];
+                              const day = date.getDate();
+                              const year = date.getFullYear();
+                              return `${month} ${day}, ${year}`;
+                            })()}
                           </p>
                         )}
                       </div>

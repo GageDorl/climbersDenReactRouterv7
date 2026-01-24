@@ -65,7 +65,14 @@ export default function TickDetails() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Climbed On</p>
-              <p className="text-lg text-gray-900 dark:text-white">{new Date(tick.date).toLocaleDateString()}</p>
+              <p className="text-lg text-gray-900 dark:text-white">{(() => {
+                const date = new Date(tick.date);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = months[date.getMonth()];
+                const day = date.getDate();
+                const year = date.getFullYear();
+                return `${month} ${day}, ${year}`;
+              })()}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Send Style</p>

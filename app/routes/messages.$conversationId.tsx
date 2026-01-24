@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { Route } from "./+types/messages.$conversationId";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
-import { uploadFileToCloudinary } from "~/lib/cloudinary.server";
 import { emitToConversation } from "~/lib/realtime.server";
 import { MessageThread } from "~/components/messages/message-thread";
 import { MessageInput } from "~/components/messages/message-input";
@@ -15,7 +14,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { conversationId } = params;
   const url = new URL(request.url);
   const cursor = url.searchParams.get('cursor');
-  const MESSAGES_PER_PAGE = 30;
+  const MESSAGES_PER_PAGE = 20; // Reduced for better lazy loading
 
   const conversation = await db.conversation.findUnique({
     where: { id: conversationId },
@@ -30,13 +29,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Unauthorized", { status: 403 });
   }
 
-  // Fetch messages with cursor-based pagination
+  // Fetch messages with cursor-based pagination (newest first, then older)
+  const whereClause: any = {
+    conversationId,
+    ...(cursor && { sentAt: { lt: new Date(cursor) } }), // Load messages older than cursor
+  };
+
   const messages = await db.message.findMany({
-    where: { conversationId },
-    orderBy: { sentAt: 'asc' },
-    take: MESSAGES_PER_PAGE + 1, // Take one extra to check if there are more
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { id: cursor } : undefined,
+    where: whereClause,
+    orderBy: { sentAt: 'desc' }, // Newest first
+    take: MESSAGES_PER_PAGE + 1, // Take one extra to check if there are more older messages
     include: {
       sender: {
         select: {
@@ -49,7 +51,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const hasMore = messages.length > MESSAGES_PER_PAGE;
-  const paginatedMessages = messages.slice(0, MESSAGES_PER_PAGE);
+  const paginatedMessages = hasMore ? messages.slice(0, MESSAGES_PER_PAGE) : messages;
+  
+  // Reverse the messages so oldest appears at top, newest at bottom for display
+  const displayMessages = paginatedMessages.reverse();
+  
+  // Use the oldest message's sentAt as the cursor for loading even older messages
+  // The cursor should be the oldest message we're actually returning (not the extra one)
+  const nextCursor = hasMore && paginatedMessages.length > 0 ? 
+    paginatedMessages[0]?.sentAt.toISOString() : // paginatedMessages[0] is the oldest since we reversed
+    null;
 
   // Get other participant info
   const otherParticipantId = conversation.participantIds.find(
@@ -79,11 +90,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   return { 
     conversation, 
-    messages: paginatedMessages,
+    messages: displayMessages,
     otherParticipant, 
     userId,
     hasMore,
-    nextCursor: hasMore ? paginatedMessages[paginatedMessages.length - 1].id : null,
+    nextCursor,
   };
 }
 
@@ -93,10 +104,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const formData = await request.formData();
   const textContent = formData.get("textContent") as string;
-  const mediaFiles = formData.getAll("media") as File[];
+  
+  // Get media URLs (uploaded client-side to Cloudinary)
+  const mediaUrls: string[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (key === "mediaUrl" && typeof value === "string" && value.trim()) {
+      mediaUrls.push(value.trim());
+    }
+  }
 
   // Validate at least text or media
-  if ((!textContent || textContent.trim().length === 0) && mediaFiles.length === 0) {
+  if ((!textContent || textContent.trim().length === 0) && mediaUrls.length === 0) {
     return { error: "Message cannot be empty" };
   }
 
@@ -121,25 +139,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw new Response("Invalid conversation", { status: 400 });
   }
 
-  // Upload media files to Cloudinary
-  let mediaUrls: string[] = [];
-  if (mediaFiles.length > 0) {
-    const validFiles = mediaFiles.filter((file) => file.size > 0);
-    
-    if (validFiles.length > 10) {
-      return { error: "Maximum 10 media files allowed" };
-    }
-
-    try {
-      const uploadPromises = validFiles.map((file) =>
-        uploadFileToCloudinary(file, "messages")
-      );
-      const uploadResults = await Promise.all(uploadPromises);
-      mediaUrls = uploadResults.map((result) => result.secure_url);
-    } catch (error) {
-      console.error("Media upload failed:", error);
-      return { error: "Failed to upload media files" };
-    }
+  // Validate media count
+  if (mediaUrls.length > 10) {
+    return { error: "Maximum 10 media files allowed" };
   }
 
   // Create message
@@ -189,8 +191,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function ConversationThread({ params }: Route.ComponentProps) {
-  const { messages: initialMessages, otherParticipant, userId, hasMore } = useLoaderData<typeof loader>();
+  const { messages: initialMessages, otherParticipant, userId, hasMore: initialHasMore, nextCursor: initialNextCursor } = useLoaderData<typeof loader>();
   const [messages, setMessages] = useState(initialMessages);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState(initialNextCursor);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const fetcher = useFetcher();
 
@@ -203,19 +207,36 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
     if (!hasMore || isLoadingOlder) return;
     
     setIsLoadingOlder(true);
-    const firstMessageId = messages[0]?.id;
-    if (firstMessageId) {
-      fetcher.load(`/messages/${params.conversationId}?cursor=${firstMessageId}`);
+    if (nextCursor) {
+      fetcher.load(`/messages/${params.conversationId}?cursor=${encodeURIComponent(nextCursor)}`);
     }
-  }, [hasMore, isLoadingOlder, messages, params.conversationId]);
+  }, [hasMore, isLoadingOlder, nextCursor, params.conversationId]);
 
   // Handle fetcher data for older messages
   useEffect(() => {
     if (fetcher.data?.messages && Array.isArray(fetcher.data.messages)) {
-      setMessages(prev => [
-        ...fetcher.data.messages,
-        ...prev
-      ]);
+      setMessages(prev => {
+        // Get existing message IDs to prevent duplicates
+        const existingIds = new Set(prev.map(m => m.id));
+        
+        // Filter out any messages that are already loaded
+        const newOlderMessages = fetcher.data.messages.filter(
+          (message: any) => !existingIds.has(message.id)
+        );
+        
+        // Only add if we have new messages
+        if (newOlderMessages.length > 0) {
+          return [
+            ...newOlderMessages, // Older messages first
+            ...prev // Current messages after
+          ];
+        }
+        
+        return prev;
+      });
+      
+      setHasMore(fetcher.data.hasMore);
+      setNextCursor(fetcher.data.nextCursor);
       setIsLoadingOlder(false);
     }
   }, [fetcher.data]);
@@ -226,10 +247,36 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
     // Only add messages for this conversation
     if (newMessage.conversationId === params.conversationId) {
       setMessages((prev) => {
-        // Check if message already exists
+        // Check if message already exists by ID
         if (prev.some(m => m.id === newMessage.id)) {
           return prev;
         }
+        
+        // Check for optimistic message to replace
+        // Find optimistic messages (temp IDs) that match the content and timing
+        const optimisticIndex = prev.findIndex(m => {
+          if (!m.id.startsWith('temp-')) return false;
+          
+          // Match by content and approximate timestamp (within 10 seconds)
+          const contentMatch = m.textContent === newMessage.textContent && 
+                              JSON.stringify(m.mediaUrls?.sort()) === JSON.stringify(newMessage.mediaUrls?.sort());
+          
+          const sentAtDiff = Math.abs(
+            new Date(m.sentAt).getTime() - new Date(newMessage.sentAt).getTime()
+          );
+          const timeMatch = sentAtDiff < 10000; // 10 seconds tolerance
+          
+          return contentMatch && timeMatch;
+        });
+        
+        if (optimisticIndex !== -1) {
+          // Replace optimistic message with real one
+          const updated = [...prev];
+          updated[optimisticIndex] = newMessage;
+          return updated;
+        }
+        
+        // Add new message if no optimistic match found
         return [...prev, newMessage];
       });
     }
@@ -237,16 +284,20 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
 
   useMessageListener(handleNewMessage);
 
-  // Only reset messages when switching to a different conversation
+  // Reset messages and pagination when switching to a different conversation
   useEffect(() => {
     setMessages(initialMessages);
-  }, [initialMessages]);
+    setHasMore(initialHasMore);
+    setNextCursor(initialNextCursor);
+    setIsLoadingOlder(false);
+  }, [initialMessages, initialHasMore, initialNextCursor, params.conversationId]);
 
   // Handle sending message
   const handleSendMessage = useCallback((textContent: string, mediaUrls: string[]) => {
     // Add optimistic message immediately
+    const now = new Date();
     const optimisticMessage = {
-      id: `temp-${Date.now()}-${Math.random()}`,
+      id: `temp-${now.getTime()}-${Math.random()}`,
       conversationId: params.conversationId,
       sender: {
         id: userId,
@@ -254,8 +305,8 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
         profilePhotoUrl: null,
       },
       textContent,
-      mediaUrls,
-      sentAt: new Date().toISOString(),
+      mediaUrls: [...mediaUrls], // Ensure array is cloned
+      sentAt: now.toISOString(),
       readAt: null,
     };
     
@@ -311,7 +362,13 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
       </div>
 
       {/* Messages Thread */}
-      <MessageThread messages={messages} currentUserId={userId} onLoadOlder={handleLoadOlder} hasMore={hasMore} />
+      <MessageThread 
+        messages={messages} 
+        currentUserId={userId} 
+        onLoadOlder={handleLoadOlder} 
+        hasMore={hasMore}
+        isLoadingOlder={isLoadingOlder}
+      />
       
       {isTyping && otherParticipant && (
         <div className="border-t border-gray-200 px-4 py-2 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">

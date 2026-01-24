@@ -18,9 +18,16 @@ import { db } from "./lib/db.server";
 export const meta: Route.MetaFunction = () => [
   { title: "climbersDen - Social Network for Rock Climbers" },
   { name: "description", content: "Connect with climbers, discover crags, track your climbing progress" },
+  { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" },
+  { name: "mobile-web-app-capable", content: "yes" },
+  { name: "apple-mobile-web-app-capable", content: "yes" }, // Keep for backward compatibility
+  { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+  { name: "apple-mobile-web-app-title", content: "climbersDen" },
+  { name: "theme-color", content: "#2563eb" },
 ];
 
 export const links: Route.LinksFunction = () => [
+  { rel: "manifest", href: "/manifest.json" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",

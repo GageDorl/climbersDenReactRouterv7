@@ -34,8 +34,10 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
   }
 
   try {
-    const body = await request.json();
-    const { textContent } = UpdateCommentSchema.parse(body);
+    const formData = await request.formData();
+    const { textContent } = UpdateCommentSchema.parse({
+      textContent: formData.get('textContent'),
+    });
 
     // Get comment to verify ownership
     const comment = await db.comment.findUnique({
