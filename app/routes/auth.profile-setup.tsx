@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { getUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ImageCropper } from "~/components/posts/image-cropper";
+import { LocationPermissionModal } from "~/components/location/location-permission-modal";
+import { useGeolocation } from "~/hooks/use-geolocation";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);
@@ -91,9 +93,49 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalStep, setLocationModalStep] = useState<'initial' | 'processing' | 'done'>('initial');
+  const [shouldSubmitLocation, setShouldSubmitLocation] = useState(false);
+  const { position, requestLocation } = useGeolocation();
+  const hasSubmittedLocationRef = useRef(false);
   const [cropperOpen, setCropperOpen] = useState(false);
-  const [cropperImage, setCropperImage] = useState('');
+  const [cropperImage, setCropperImage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Handle location submission after geolocation completes
+  useEffect(() => {
+    if (shouldSubmitLocation && position && !hasSubmittedLocationRef.current) {
+      hasSubmittedLocationRef.current = true;
+      
+      const submitLocation = async () => {
+        try {
+          await fetch('/api/user/location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              latitude: position.latitude,
+              longitude: position.longitude,
+              granted: true,
+            }),
+          });
+        } catch (error) {
+          console.error('Failed to save location:', error);
+        }
+        
+        setLocationModalStep('done');
+        setTimeout(() => {
+          setShowLocationModal(false);
+          // Reset states
+          setShouldSubmitLocation(false);
+          hasSubmittedLocationRef.current = false;
+          // Redirect to posts page
+          window.location.href = '/posts';
+        }, 800);
+      };
+      
+      submitLocation();
+    }
+  }, [shouldSubmitLocation, position]);
 
   /**
    * Upload a file directly to Cloudinary using signed upload
@@ -165,8 +207,24 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
     setSelectedFile(null);
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    // Show location modal after form validates
+    setShowLocationModal(true);
+  };
+
+  const handleAllowLocation = () => {
+    setLocationModalStep('processing');
+    setShouldSubmitLocation(true);
+    requestLocation();
+  };
+
+  const handleDenyLocation = () => {
+    setShowLocationModal(false);
+    hasSubmittedLocationRef.current = false;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4 py-8">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>Complete your profile</CardTitle>
@@ -174,7 +232,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
             Tell the community about your climbing experience
           </CardDescription>
         </CardHeader>
-        <Form method="post">
+        <Form method="post" onSubmit={handleFormSubmit}>
           <CardContent className="space-y-6">
             {actionData?.error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
@@ -280,12 +338,20 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
 
         {/* Image cropper modal */}
         <ImageCropper
-          isOpen={cropperOpen}
-          image={cropperImage}
+          imageSrc={cropperImage}
+          open={cropperOpen}
           onSave={handleCropperSave}
           onCancel={handleCropperCancel}
         />
       </Card>
+
+      {/* Location Permission Modal */}
+      <LocationPermissionModal
+        isOpen={showLocationModal}
+        onAllow={handleAllowLocation}
+        onDeny={handleDenyLocation}
+        onAskLater={handleDenyLocation}
+      />
     </div>
   );
 }

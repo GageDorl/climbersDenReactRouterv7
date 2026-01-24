@@ -20,6 +20,7 @@ export default [
   
   // Discovery routes
   route("discover", "routes/discover.tsx"),
+  route("discover/nearby", "routes/discover.nearby.tsx"),
   route("crags", "routes/crags._index.tsx"),
   route("crags/favorites", "routes/crags.favorites.tsx"),
   route("crags/:cragId", "routes/crags.$cragId.tsx"),
@@ -38,6 +39,7 @@ export default [
   
   // API routes
   route("api/user/location", "routes/api.user.location.tsx"),
+  route("api/users/nearby", "routes/api.users.nearby.tsx"),
   route("api/users/:userId/follow", "routes/api.users.$userId.follow.tsx"),
   route("api/posts/:postId/like", "routes/api.posts.$postId.like.tsx"),
   route("api/posts/:postId/delete", "routes/api.posts.$postId.delete.tsx"),
@@ -48,6 +50,7 @@ export default [
   route("api/comments/:commentId/edit", "routes/api.comments.$commentId.edit.tsx"),
   route("api/comments/:commentId/replies", "routes/api.comments.$commentId.replies.tsx"),
   route("api/notifications/comment", "routes/api.notifications.comment.tsx"),
+  route("api/crags/nearby", "routes/api.crags.nearby.tsx"),
   route("api/crags/:cragId/favorite", "routes/api.crags.$cragId.favorite.tsx"),
   route("api/routes/:routeId/rating", "routes/api.routes.$routeId.rating.tsx"),
   route("api/ticks/:tickId/share", "routes/api.ticks.$tickId.share.tsx"),

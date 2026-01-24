@@ -6,6 +6,8 @@ import { Card } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { FollowButton } from '~/components/profile/follow-button';
 import { PageWrapper } from '~/components/ui/page-wrapper';
+import { NearbyUsersSection } from '~/components/discovery/nearby-users-section';
+import { CragsMapSection } from '~/components/crags/crags-map-section';
 import type { UserProfile } from '~/types/db';
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -17,6 +19,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     select: { followedId: true },
   });
   const followedUserIds = existingFollows.map((f) => f.followedId);
+
+  // Get current user's location settings
+  const userLocation = await db.user.findUnique({
+    where: { id: currentUser.id },
+    select: {
+      locationPermissionGranted: true,
+      latitude: true,
+      longitude: true,
+    },
+  });
 
   // Algorithm: Suggest users based on:
   // 1. Shared climbing styles
@@ -150,15 +162,24 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     suggestedUsers,
     currentUserId: currentUser.id,
+    userLocationPermissionGranted: userLocation?.locationPermissionGranted || false,
+    userLatitude: userLocation?.latitude?.toNumber() || null,
+    userLongitude: userLocation?.longitude?.toNumber() || null,
   };
 }
 
 export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
-  const { suggestedUsers, currentUserId } = loaderData;
+  const {
+    suggestedUsers,
+    currentUserId,
+    userLocationPermissionGranted,
+    userLatitude,
+    userLongitude,
+  } = loaderData;
 
   return (
     <PageWrapper maxWidth="7xl">
-      <div className="space-y-6 w-full">
+      <div className="space-y-8 w-full">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Discover Climbers</h1>
@@ -166,6 +187,20 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
             <Button variant="outline">🔍 Advanced Search</Button>
           </Link>
         </div>
+
+        {/* Nearby Users Section */}
+        <NearbyUsersSection
+          userLocationPermissionGranted={userLocationPermissionGranted}
+          userLatitude={userLatitude}
+          userLongitude={userLongitude}
+        />
+
+        {/* Crags Map Section */}
+        <CragsMapSection
+          userLocationPermissionGranted={userLocationPermissionGranted}
+          userLatitude={userLatitude}
+          userLongitude={userLongitude}
+        />
 
         {/* Suggested Users Section */}
         <div className="space-y-4">

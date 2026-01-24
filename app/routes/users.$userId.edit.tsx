@@ -10,6 +10,7 @@ import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
 import { useState } from "react";
 import { ImageCropper } from "~/components/posts/image-cropper";
+import { LocationSettings } from "~/components/location/location-settings";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const currentUserId = await getUserId(request);
@@ -32,6 +33,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       profilePhotoUrl: true,
       climbingStyles: true,
       experienceLevel: true,
+      locationCity: true,
+      locationPermissionGranted: true,
+      lastLocationUpdate: true,
     },
   });
 
@@ -239,7 +243,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <textarea
                   id="bio"
                   name="bio"
-                  className="w-full min-h-[100px] px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full min-h-24 px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   maxLength={500}
                   defaultValue={actionData?.fields?.bio as string || user.bio || ''}
                   placeholder="Tell us about yourself..."
@@ -331,12 +335,19 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
 
           {/* Image cropper modal */}
           <ImageCropper
-            isOpen={cropperOpen}
-            image={cropperImage}
+            imageSrc={cropperImage}
+            open={cropperOpen}
             onSave={handleCropperSave}
             onCancel={handleCropperCancel}
           />
         </Card>
+
+        {/* Location Settings Card */}
+        <LocationSettings
+          currentCity={user.locationCity}
+          lastLocationUpdate={user.lastLocationUpdate?.toISOString()}
+          locationPermissionGranted={user.locationPermissionGranted}
+        />
       </div>
     </div>
   );

@@ -42,9 +42,10 @@ export const links: Route.LinksFunction = () => [
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN || '';
   
   if (!userId) {
-    return { user: null, unreadMessageCount: 0 };
+    return { user: null, unreadMessageCount: 0, mapboxToken };
   }
 
   // Get user info and unread message count
@@ -68,25 +69,53 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     user,
     unreadMessageCount: unreadCount,
+    mapboxToken,
   };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased dark:bg-gray-900">
-        {children}
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
-  );
+  try {
+    const data = useLoaderData<typeof loader>();
+    const mapboxToken = data?.mapboxToken || '';
+    
+    return (
+      <html lang="en">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+          {mapboxToken && (
+            <script dangerouslySetInnerHTML={{
+              __html: `window.__MAPBOX_TOKEN = "${mapboxToken}";`
+            }} />
+          )}
+        </head>
+        <body className="min-h-screen bg-gray-50 font-sans antialiased dark:bg-gray-900">
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
+  } catch {
+    // If useLoaderData fails (e.g., for API routes), render without token
+    return (
+      <html lang="en">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body className="min-h-screen bg-gray-50 font-sans antialiased dark:bg-gray-900">
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
 }
 
 export default function App() {

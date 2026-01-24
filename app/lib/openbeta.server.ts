@@ -92,13 +92,25 @@ async function openBetaRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`OpenBeta request failed with status ${response.status}`);
+    const errorText = await response.text();
+    console.error('OpenBeta HTTP error:', {
+      status: response.status,
+      body: errorText,
+      query,
+      variables,
+    });
+    throw new Error(`OpenBeta request failed with status ${response.status}: ${errorText}`);
   }
 
   const json = (await response.json()) as GraphQLResponse<T>;
 
   if (json.errors?.length) {
     const message = json.errors.map(err => err.message).join('; ');
+    console.error('OpenBeta GraphQL errors:', {
+      errors: json.errors,
+      query,
+      variables,
+    });
     throw new Error(`OpenBeta GraphQL error: ${message}`);
   }
 
@@ -262,4 +274,63 @@ export async function getAreaWithClimbs(
       type: climb.type ?? null,
     } satisfies OpenBetaClimb)),
   } satisfies OpenBetaAreaDetails;
+}
+
+/**
+ * Get crags within a bounding box
+ * @param maxLat Maximum latitude (north)
+ * @param minLat Minimum latitude (south)
+ * @param maxLng Maximum longitude (east)
+ * @param minLng Minimum longitude (west)
+ * @param zoom Map zoom level
+ * @param limit Maximum number of results
+ */
+export async function getCragsWithinBbox(
+  maxLat: number,
+  minLat: number,
+  maxLng: number,
+  minLng: number,
+  limit = 100,
+  zoom = 10,
+  cacheTtlMs = 5 * 60 * 1000
+) {
+  const query = `
+    query CragsWithin($bbox: [Float!]!, $zoom: Float) {
+      cragsWithin(filter: { bbox: $bbox, zoom: $zoom }) {
+        id
+        uuid
+        area_name
+        totalClimbs
+        metadata { lat lng }
+      }
+    }
+  `;
+
+  // bbox format: [minLng, minLat, maxLng, maxLat] (west, south, east, north)
+  const bbox = [minLng, minLat, maxLng, maxLat];
+  const cacheKey = `crags_bbox:${maxLat}:${minLat}:${maxLng}:${minLng}:${zoom}`;
+
+  try {
+    const data = await openBetaRequest<{
+      cragsWithin: Array<{
+        id: string;
+        uuid: string;
+        area_name: string;
+        totalClimbs: number;
+        metadata?: { lat?: number; lng?: number } | null;
+      }>;
+    }>(query, { bbox, zoom }, cacheKey, cacheTtlMs);
+
+    return (data.cragsWithin || []).map(area => ({
+      id: area.id,
+      uuid: area.uuid,
+      name: area.area_name,
+      totalClimbs: area.totalClimbs ?? 0,
+      latitude: area.metadata?.lat ?? null,
+      longitude: area.metadata?.lng ?? null,
+    } satisfies OpenBetaAreaSummary));
+  } catch (error) {
+    console.error('getCragsWithinBbox error:', error);
+    return [];
+  }
 }

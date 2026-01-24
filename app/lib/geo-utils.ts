@@ -103,3 +103,64 @@ export async function reverseGeocode(
     return null;
   }
 }
+/**
+ * Find climbers near a given location using distance calculation
+ * @param db - Prisma client instance
+ * @param latitude - User's current latitude
+ * @param longitude - User's current longitude
+ * @param radiusMiles - Search radius in miles (default 50)
+ * @param currentUserId - Current user ID to exclude from results
+ * @param limit - Maximum number of results (default 50)
+ * @returns Array of nearby users with distance
+ */
+export async function findNearbyUsers(
+  db: any,
+  latitude: number,
+  longitude: number,
+  radiusMiles: number = 50,
+  currentUserId?: string,
+  limit: number = 50
+) {
+  try {
+    // Get all users with location permission enabled
+    const allUsers = await db.user.findMany({
+      where: {
+        locationPermissionGranted: true,
+        latitude: { not: null },
+        longitude: { not: null },
+        deletedAt: null,
+        ...(currentUserId && { id: { not: currentUserId } }),
+      },
+      select: {
+        id: true,
+        displayName: true,
+        profilePhotoUrl: true,
+        climbingStyles: true,
+        experienceLevel: true,
+        latitude: true,
+        longitude: true,
+        locationCity: true,
+      },
+    });
+
+    // Calculate distances and filter
+    const nearbyUsers = allUsers
+      .map((user: any) => ({
+        ...user,
+        distance: calculateDistance(
+          latitude,
+          longitude,
+          user.latitude?.toNumber() || 0,
+          user.longitude?.toNumber() || 0
+        ),
+      }))
+      .filter((user: any) => user.distance <= radiusMiles)
+      .sort((a: any, b: any) => a.distance - b.distance)
+      .slice(0, limit);
+
+    return nearbyUsers;
+  } catch (error) {
+    console.error('Error finding nearby users:', error);
+    return [];
+  }
+}
