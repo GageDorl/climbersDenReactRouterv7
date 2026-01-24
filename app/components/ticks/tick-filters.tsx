@@ -22,7 +22,7 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
   };
 
   return (
-    <div className="rounded-lg border-default bg-surface p-4">
+    <div className="rounded-lg border-default bg-secondary p-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <div>
           <label className="block text-sm font-medium text-secondary">Start Date</label>

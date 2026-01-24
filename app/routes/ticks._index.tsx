@@ -107,7 +107,7 @@ export default function TicksIndex() {
 
         <TickFilters crags={crags} onFilterChange={handleFilterChange} initialFilters={filters} />
 
-        <div className="space-y-3">
+        <div className="space-y-3 flex flex-col gap-0.5">
           {ticks.length === 0 ? (
             <div className="rounded-lg bg-surface p-8 text-center">
               <p className="text-muted">No ticks yet. Start logging your climbs!</p>

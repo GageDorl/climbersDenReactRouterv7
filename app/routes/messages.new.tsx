@@ -3,6 +3,7 @@ import type { Route } from "./+types/messages.new";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { PageWrapper } from "~/components/ui/page-wrapper";
+import { Input } from "~/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -127,9 +128,18 @@ export default function NewMessage() {
   const [selectedRecipient, setSelectedRecipient] = useState(recipientUser);
   const [queryState, setQueryState] = useState(query);
   const [clientResults, setClientResults] = useState<any[]>(searchResults);
+  const [searching, setSearching] = useState(false);
+  const lastQueryRef = useRef<string>('');
   const [textContent, setTextContent] = useState(prefill || "");
   const debounceRef = useRef<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Initialize lastQueryRef if loader provided an initial query/searchResults
+  useEffect(() => {
+    if (query && query.length >= 2 && searchResults && searchResults.length >= 0) {
+      lastQueryRef.current = query;
+    }
+  }, []);
 
   // Prefer sessionStorage prefill if present (set by share modal)
   useEffect(() => {
@@ -154,22 +164,31 @@ export default function NewMessage() {
 
     if (!queryState || queryState.length < 2) {
       setClientResults([]);
+      setSearching(false);
       return;
     }
 
     debounceRef.current = window.setTimeout(async () => {
       if (abortRef.current) abortRef.current.abort();
       abortRef.current = new AbortController();
+      setSearching(true);
       try {
         const res = await fetch(`/api/users/search?q=${encodeURIComponent(queryState)}`, {
           signal: abortRef.current.signal,
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          setSearching(false);
+          return;
+        }
         const data = await res.json();
         setClientResults(data.users || []);
+        // mark that we've searched for this query
+        lastQueryRef.current = queryState;
+        setSearching(false);
       } catch (err) {
         if ((err as any).name === 'AbortError') return;
         console.error('User search failed', err);
+        setSearching(false);
       }
     }, 250);
 
@@ -181,13 +200,12 @@ export default function NewMessage() {
 
   return (
     <PageWrapper maxWidth="2xl">
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
-        <div className="mx-auto max-w-2xl px-4">
+      <div className="mx-auto max-w-2xl px-4">
         {/* Header */}
         <div className="mb-6 flex items-center space-x-4">
           <Link
             to="/messages"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className="link-primary"
           >
             <svg
               className="h-6 w-6"
@@ -203,32 +221,32 @@ export default function NewMessage() {
               />
             </svg>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-primary">
             New Message
           </h1>
         </div>
 
         {/* Content */}
-        <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-secondary p-6 shadow">
           {!selectedRecipient ? (
             <>
               {/* User Search */}
               <div className="mb-4">
                 <label
                   htmlFor="search"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="mb-2 block text-sm font-medium text-secondary"
                 >
                   Search for a user
                 </label>
                 <div>
-                  <input
+                  <Input
                     type="text"
                     name="q"
                     id="search"
                     value={queryState}
                     onChange={(e) => setQueryState(e.target.value)}
                     placeholder="Enter username..."
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    className="w-full rounded-lg border border-default px-4 py-2 text-sm focus:outline-none focus:ring-2 dark:border-default dark:bg-surface dark:text-primary"
                     autoComplete="off"
                   />
                 </div>
@@ -241,7 +259,7 @@ export default function NewMessage() {
                     <button
                       key={user.id}
                       onClick={() => setSelectedRecipient(user)}
-                      className="flex w-full items-center space-x-3 rounded-lg p-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center space-x-3 rounded-lg p-3 text-left hover:bg-surface dark:hover:bg-surface"
                     >
                       {user.profilePhotoUrl ? (
                         <img
@@ -250,11 +268,11 @@ export default function NewMessage() {
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
                           {user.displayName[0].toUpperCase()}
                         </div>
                       )}
-                      <span className="font-medium text-gray-900 dark:text-white">
+                      <span className="font-medium text-primary">
                         {user.displayName}
                       </span>
                     </button>
@@ -262,14 +280,14 @@ export default function NewMessage() {
                 </div>
               )}
 
-              {queryState && clientResults.length === 0 && (
-                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+              {queryState && !searching && clientResults.length === 0 && lastQueryRef.current === queryState && (
+                <p className="text-center text-sm text-muted">
                   No users found matching "{queryState}"
                 </p>
               )}
 
               {!queryState && (
-                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-center text-sm text-muted">
                   Type at least 2 characters to search for users
                 </p>
               )}
@@ -277,9 +295,9 @@ export default function NewMessage() {
           ) : (
             <>
               {/* Selected Recipient */}
-              <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              <div className="mb-4 flex items-center justify-between rounded-lg border border-default p-3 dark:border-default">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-secondary">
                     To:
                   </span>
                   {selectedRecipient.profilePhotoUrl ? (
@@ -289,17 +307,17 @@ export default function NewMessage() {
                       className="h-8 w-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm text-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm text-white">
                       {selectedRecipient.displayName[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="font-medium text-primary">
                     {selectedRecipient.displayName}
                   </span>
                 </div>
                 <button
                   onClick={() => setSelectedRecipient(null)}
-                  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-sm text-secondary hover:text-primary dark:text-secondary dark:hover:text-primary"
                 >
                   Change
                 </button>
@@ -315,7 +333,7 @@ export default function NewMessage() {
                 <div className="mb-4">
                   <label
                     htmlFor="textContent"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="mb-2 block text-sm font-medium text-secondary"
                   >
                     Message
                   </label>
@@ -324,7 +342,7 @@ export default function NewMessage() {
                     id="textContent"
                     rows={6}
                     placeholder="Type your message..."
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    className="w-full rounded-lg border border-default px-4 py-2 text-sm focus:outline-none focus:ring-2 dark:border-default dark:bg-surface dark:text-primary"
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
                     required
@@ -334,13 +352,13 @@ export default function NewMessage() {
                 <div className="flex justify-end space-x-3">
                   <Link
                     to="/messages"
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="rounded-lg border border-default px-4 py-2 text-sm font-medium text-secondary hover:bg-surface dark:border-default dark:text-secondary dark:hover:bg-surface"
                   >
                     Cancel
                   </Link>
                   <button
                     type="submit"
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="rounded-lg btn-primary px-4 py-2 text-sm font-medium"
                   >
                     Send Message
                   </button>
@@ -348,7 +366,6 @@ export default function NewMessage() {
               </Form>
             </>
           )}
-        </div>
         </div>
       </div>
     </PageWrapper>

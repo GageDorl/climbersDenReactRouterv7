@@ -61,10 +61,7 @@ export const action = async ({ params, request }: Route.ActionArgs) => {
     throw new Response('Tick date cannot be in the future', { status: 400 });
   }
 
-  const user_data = await db.user.findUnique({ where: { id: user.id } });
-  if (user_data && tickDate < user_data.createdAt) {
-    throw new Response('Tick date cannot be before account creation', { status: 400 });
-  }
+  // Allow historical ticks; do not block dates before account creation.
 
   const sendStyleEnum = sendStyle as any;
 

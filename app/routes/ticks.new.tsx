@@ -70,11 +70,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     throw new Response("Tick date cannot be in the future", { status: 400 });
   }
 
-  // Validate date is not before user account creation
-  const user_data = await db.user.findUnique({ where: { id: user.id } });
-  if (user_data && tickDate < user_data.createdAt) {
-    throw new Response("Tick date cannot be before account creation", { status: 400 });
-  }
+  // Previously we prevented ticks dated before account creation; allow historical ticks now.
 
   // Check for duplicate tick using OpenBeta UUID
   const existingTick = await db.tick.findFirst({
@@ -104,12 +100,32 @@ export const action = async ({ request }: Route.ActionArgs) => {
     },
   });
 
+  // Ensure the crag exists in our DB (OpenBeta may reference external crag ids)
+  const cragNameFromForm = formData.get('cragName') as string | null;
+  const existingCrag = await db.crag.findUnique({ where: { id: cragId } });
+  if (!existingCrag) {
+    await db.crag.create({ data: { id: cragId, name: cragNameFromForm || 'Unknown Crag' } });
+  }
+
   if (!route) {
+    // Normalize routeType to match Prisma RouteType enum values
+    const normalizeRouteType = (t: string | null | undefined) => {
+      const s = (t || '').toString().toLowerCase();
+      if (!s) return 'sport';
+      if (s.includes('boulder') || s.includes('bouldering')) return 'boulder';
+      if (s.includes('trad') || s.includes('traditional')) return 'trad';
+      if (s.includes('mixed')) return 'mixed';
+      if (s.includes('sport')) return 'sport';
+      return 'sport';
+    };
+
+    const normalizedType = normalizeRouteType(routeType);
+
     route = await db.route.create({
       data: {
         name: routeName,
         grade: routeGrade,
-        type: (routeType as any) || "sport",
+        type: normalizedType as any,
         cragId,
       },
     });
@@ -129,7 +145,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     },
   });
 
-  return { tickId: tick.id };
+  return redirect(`/ticks/${tick.id}`);
 };
 
 export default function NewTick() {
@@ -218,6 +234,7 @@ function TickFormForNewTick({ route }: { route: any }) {
       <input type="hidden" name="routeGrade" value={route.grade} />
       <input type="hidden" name="routeType" value={Object.keys(route.type || {}).find((k) => route.type[k]) || "sport"} />
       <input type="hidden" name="cragId" value={route.cragId} />
+      <input type="hidden" name="cragName" value={route.crag?.name || ''} />
 
       <div>
         <label className="block text-sm font-medium text-secondary">Date Climbed</label>

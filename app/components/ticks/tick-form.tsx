@@ -17,28 +17,38 @@ interface TickFormProps {
 
 export default function TickForm({ routes, initialTick, isEditing }: TickFormProps) {
   const fetcher = useFetcher();
-  const [selectedRoute, setSelectedRoute] = useState<string>(initialTick?.id || '');
+  const [selectedRoute, setSelectedRoute] = useState<string>(initialTick?.id || (routes && routes[0]?.id) || '');
 
   const sendStyles = ['redpoint', 'flash', 'onsight', 'project', 'toprope', 'follow'];
 
   return (
     <fetcher.Form method={isEditing ? 'PATCH' : 'POST'} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-secondary">Route</label>
-        <select
-          name="routeId"
-          required
-          defaultValue={selectedRoute}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-        >
-          <option value="">Select a route...</option>
-          {routes.map((route) => (
-            <option key={route.id} value={route.id}>
-              {route.name} - {route.grade} ({route.type})
-            </option>
-          ))}
-        </select>
-      </div>
+      {isEditing ? (
+        <div>
+          <label className="block text-sm font-medium text-secondary">Route</label>
+          <div className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-surface text-primary">
+            {routes[0]?.name} - {routes[0]?.grade} ({routes[0]?.type})
+          </div>
+          <input type="hidden" name="routeId" value={routes[0]?.id} />
+        </div>
+      ) : (
+        <div>
+          <label className="block text-sm font-medium text-secondary">Route</label>
+          <select
+            name="routeId"
+            required
+            defaultValue={selectedRoute}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          >
+            <option value="">Select a route...</option>
+            {routes.map((route) => (
+              <option key={route.id} value={route.id}>
+                {route.name} - {route.grade} ({route.type})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-secondary">Date Climbed</label>

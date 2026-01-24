@@ -92,7 +92,7 @@ export default function MessagesIndex() {
 
         {/* Conversations List */}
         {conversations.length === 0 ? (
-          <div className="rounded-lg bg-surface p-8 text-center shadow">
+          <div className="rounded-lg bg-secondary p-8 text-center shadow">
             <svg
               className="mx-auto h-12 w-12 text-muted"
               fill="none"
@@ -132,7 +132,7 @@ export default function MessagesIndex() {
                 <Link
                   key={conversation.id}
                   to={`/messages/${conversation.id}`}
-                  className="block rounded-lg bg-surface p-4 shadow transition-shadow hover:shadow-md"
+                  className="block rounded-lg bg-secondary p-4 shadow transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-start space-x-4">
                     {/* Avatar */}

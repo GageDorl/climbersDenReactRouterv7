@@ -19,7 +19,7 @@ interface TickListProps {
 export default function TickListItem({ tick }: TickListProps) {
   return (
     <Link to={`/ticks/${tick.id}`}>
-      <div className="rounded-lg border-default bg-surface p-4 transition-colors hover:bg-secondary">
+      <div className="rounded-lg border-default bg-secondary p-4 transition-colors hover:bg-secondary">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h3 className="font-semibold text-primary">{tick.route.name}</h3>

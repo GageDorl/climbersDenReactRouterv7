@@ -58,10 +58,28 @@ export default function TickDetails() {
             <Button variant="outline" onClick={() => navigate('/ticks')}>
               Back
             </Button>
+            <button
+              onClick={async () => {
+                if (!confirm('Delete this tick?')) return;
+                try {
+                  const res = await fetch(`/api/ticks/${tick.id}/delete`, { method: 'DELETE' });
+                  if (res.ok) {
+                    navigate('/ticks');
+                  } else {
+                    console.error('Failed to delete tick', await res.text());
+                  }
+                } catch (err) {
+                  console.error('Delete error', err);
+                }
+              }}
+              className="btn btn-ghost text-destructive"
+            >
+              Delete
+            </button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
+        <div className="rounded-lg border border-default bg-secondary p-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-secondary">Climbed On</p>
@@ -87,14 +105,14 @@ export default function TickDetails() {
           </div>
 
           {tick.personalNotes && (
-            <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="mt-4 border-t border-default pt-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Notes</p>
               <p className="mt-2 text-gray-800 dark:text-gray-200">{tick.personalNotes}</p>
             </div>
           )}
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
+        <div className="rounded-lg border border-default bg-secondary p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Rate This Route</h2>
           <RouteRating routeId={tick.route.id} initialRating={userRating?.starRating || 0} />
         </div>
