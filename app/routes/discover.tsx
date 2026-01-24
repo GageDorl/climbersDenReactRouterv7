@@ -162,6 +162,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     suggestedUsers,
     currentUserId: currentUser.id,
+    currentUserDisplayName: currentUser.displayName,
     userLocationPermissionGranted: userLocation?.locationPermissionGranted || false,
     userLatitude: userLocation?.latitude?.toNumber() || null,
     userLongitude: userLocation?.longitude?.toNumber() || null,
@@ -172,6 +173,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
   const {
     suggestedUsers,
     currentUserId,
+    currentUserDisplayName,
     userLocationPermissionGranted,
     userLatitude,
     userLongitude,
@@ -193,6 +195,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
           userLocationPermissionGranted={userLocationPermissionGranted}
           userLatitude={userLatitude}
           userLongitude={userLongitude}
+          currentUserDisplayName={currentUserDisplayName}
         />
 
         {/* Crags Map Section */}

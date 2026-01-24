@@ -21,6 +21,7 @@ interface NearbyUsersSectionProps {
   userLocationPermissionGranted: boolean;
   userLatitude: number | null;
   userLongitude: number | null;
+  currentUserDisplayName: string;
 }
 
 /**
@@ -31,6 +32,7 @@ export function NearbyUsersSection({
   userLocationPermissionGranted,
   userLatitude,
   userLongitude,
+  currentUserDisplayName,
 }: NearbyUsersSectionProps) {
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [loading, setLoading] = useState(false);
@@ -87,7 +89,7 @@ export function NearbyUsersSection({
                 Share your location to discover climbers near you and find climbing partners.
                 Your exact coordinates are never shared—only your city is visible to other users.
               </p>
-              <Link to="/users/me/edit">
+              <Link to={`/users/${currentUserDisplayName}/edit`}>
                 <Button size="sm" variant="outline">
                   <MapPin className="h-4 w-4 mr-2" />
                   Enable Location

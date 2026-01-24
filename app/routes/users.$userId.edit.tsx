@@ -11,6 +11,7 @@ import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
 import { useState } from "react";
 import { ImageCropper } from "~/components/posts/image-cropper";
+import { LocationSettings } from "~/components/location/location-settings";
 
 // Utility function to compress an image file
 const compressImage = (file: File, maxSizeMB: number = 8, quality: number = 0.8): Promise<File> => {
