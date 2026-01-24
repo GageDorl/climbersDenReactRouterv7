@@ -103,7 +103,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
                   ) : (
                     <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">Post</div>
                   )}
-                  <div className="truncate text-sm text-secondary">
+                  <div className="truncate text-sm text-secondary line-clamp-2">
                     {isFromCurrentUser && "You: "}
                     {postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}
                   </div>

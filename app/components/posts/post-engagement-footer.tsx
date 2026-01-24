@@ -52,7 +52,7 @@ export function PostEngagementFooter({
           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors text-secondary"
         >
           <Share2 className="w-5 h-5" />
-          <span className="text-sm font-medium">{shareCount}</span>
+          {/* share count intentionally hidden — shares aren't tracked */}
         </button>
       </div>
     </div>

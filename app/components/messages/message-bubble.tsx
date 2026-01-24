@@ -129,13 +129,15 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-primary">{postPreview.user?.displayName || 'Shared post'}</p>
-                    <p className="text-sm text-muted truncate">{postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}</p>
-                  </div>
+                  <p className="text-sm font-medium text-primary">{postPreview.user?.displayName || 'Shared post'}</p>
+                  <p className="text-sm text-muted line-clamp-3">
+                    {postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}
+                  </p>
+                </div>
                 </div>
               </div>
               {remainderText && (
-                <p className="whitespace-pre-wrap break-words text-sm mt-2">{remainderText}</p>
+                <p className="whitespace-pre-wrap break-words text-sm mt-2 line-clamp-2">{remainderText}</p>
               )}
             </>
           ) : (

@@ -263,6 +263,16 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
     // Submit form to server
     const formData = new FormData();
     formData.append("textContent", textContent.trim());
+    // If this is a post-share, also include a separate postId field so server
+    // accepts the share even if the marker wasn't applied client-side.
+    if (isPostShare) {
+      const markerPrefix = '__POST_SHARE__:';
+      if (textContent && textContent.startsWith(markerPrefix)) {
+        const raw = textContent.slice(markerPrefix.length);
+        const postId = raw.split(/\s|\r|\n/)[0]?.trim();
+        if (postId) formData.append('postId', postId);
+      }
+    }
     selectedFiles.forEach((file) => {
       formData.append("media", file);
     });
@@ -398,14 +408,14 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
               placeholder={isPostShare ? "Add an optional message..." : "Type a message..."}
               rows={1}
               className="w-full resize-none rounded-lg border-default px-4 py-2 text-sm focus:outline-none bg-surface text-primary"
-              required={selectedFiles.length === 0}
+              required={selectedFiles.length === 0 && !isPostShare}
             />
           </div>
 
         {/* Send button */}
         <button
           type="submit"
-          disabled={!textContent.trim() && selectedFiles.length === 0}
+          disabled={!textContent.trim() && selectedFiles.length === 0 && !isPostShare}
           className="btn-primary flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send

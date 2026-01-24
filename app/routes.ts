@@ -66,4 +66,19 @@ export default [
   route("ticks/user/:userId", "routes/ticks.user.$userId.tsx"),
   route("ticks/:tickId", "routes/ticks.$tickId.tsx"),
   route("ticks/:tickId/edit", "routes/ticks.$tickId.edit.tsx"),
+  
+  // Gear routes
+  route("gear", "routes/gear._index.tsx"),
+  route("gear/new", "routes/gear.new.tsx"),
+  route("gear/:listId", "routes/gear.$listId.tsx"),
+
+  // Gear API routes
+  route("api/gear/:listId/items", "routes/api.gear.$listId.items.tsx"),
+  route("api/gear/items/:itemId/claim", "routes/api.gear.items.$itemId.claim.tsx"),
+  route("api/gear/items/:itemId/delete", "routes/api.gear.items.$itemId.delete.tsx"),
+  route("api/gear/:listId/participants", "routes/api.gear.$listId.participants.tsx"),
+  route("api/gear/:listId/participants/:participantId/remove", "routes/api.gear.$listId.participants.$participantId.remove.tsx"),
+  route("api/gear/:listId/edit", "routes/api.gear.$listId.edit.tsx"),
+  route("api/gear/:listId/delete", "routes/api.gear.$listId.delete.tsx"),
 ] satisfies RouteConfig;
+

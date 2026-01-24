@@ -112,6 +112,14 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
                       Crags
                     </Button>
                   </Link>
+                  <Link to="/gear">
+                    <Button
+                      variant={location.pathname.startsWith('/gear') ? 'default' : 'ghost'}
+                      size="sm"
+                    >
+                      Gear
+                    </Button>
+                  </Link>
                   <Link to="/ticks">
                     <Button 
                       variant={location.pathname.startsWith('/ticks') ? 'default' : 'ghost'}
@@ -300,6 +308,26 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
                 />
               </svg>
               <span className="text-xs font-medium">Ticks</span>
+            </Link>
+
+            {/* Gear */}
+            <Link 
+              to="/gear" 
+              className={`flex flex-col items-center justify-center space-y-1 ${
+                location.pathname.startsWith('/gear') 
+                  ? 'text-accent' 
+                  : 'text-secondary'
+              }`}
+            >
+              <svg 
+                className="h-6 w-6" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16v2m8-10h2M2 12H4m15.364-6.364l1.414 1.414M4.222 19.778l1.414-1.414M18.364 18.364l1.414-1.414M4.222 4.222l1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
+              <span className="text-xs font-medium">Gear</span>
             </Link>
           </div>
         </nav>

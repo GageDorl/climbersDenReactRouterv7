@@ -16,7 +16,7 @@ export function PostMetrics({ likeCount, commentCount, shareCount = 0 }: PostMet
         <span>comments</span>
       </div>
       <div className="flex items-center gap-1">
-        <span className="font-semibold text-primary">{shareCount}</span>
+        {/* share count intentionally hidden — shares aren't tracked */}
         <span>shares</span>
       </div>
     </div>

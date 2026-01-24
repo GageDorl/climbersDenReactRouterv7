@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { Route } from "./+types/messages.$conversationId";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
+import { uploadFileToCloudinary } from '~/lib/cloudinary.server';
 import { emitToConversation } from "~/lib/realtime.server";
 import { MessageThread } from "~/components/messages/message-thread";
 import { MessageInput } from "~/components/messages/message-input";
@@ -104,16 +105,49 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const formData = await request.formData();
   const textContent = formData.get("textContent") as string;
-  
-  // Get media URLs (uploaded client-side to Cloudinary)
+  const postIdField = (formData.get('postId') as string) || null;
+
+  // Get media URLs: support both client-provided `mediaUrl` strings and
+  // raw uploaded files under the `media` field (MessageInput sends files as `media`).
   const mediaUrls: string[] = [];
   for (const [key, value] of formData.entries()) {
+    // Pre-uploaded URL from client
     if (key === "mediaUrl" && typeof value === "string" && value.trim()) {
       mediaUrls.push(value.trim());
+      continue;
+    }
+
+    // File upload from client - upload server-side to Cloudinary
+    if (key === 'media' && typeof value === 'object' && value !== null) {
+      try {
+        // Some runtimes provide File/Blob with arrayBuffer and type
+        const fileLike: any = value as any;
+        const fileType: string | undefined = fileLike.type;
+        const folder = fileType && fileType.startsWith('video/') ? 'posts/videos' : 'posts/images';
+
+        // Upload via server helper which accepts a File-like object
+        const uploaded = await uploadFileToCloudinary(fileLike as File, folder);
+        if (uploaded && uploaded.secure_url) {
+          mediaUrls.push(uploaded.secure_url);
+        }
+      } catch (err) {
+        console.error('Error uploading message media to Cloudinary', err);
+      }
     }
   }
 
-  // Validate at least text or media
+  // If a postId was sent separately, convert it to the marker so the UI
+  // and preview logic continue working. This also allows sending a post
+  // share without any additional text.
+  if ((!textContent || textContent.trim().length === 0) && postIdField) {
+    // store marker as textContent
+    const marker = `__POST_SHARE__:${postIdField}`;
+    // set textContent variable used below
+    // Note: we don't modify formData, just the local variable
+    (textContent as any) = marker;
+  }
+
+  // Validate at least text, post share, or media
   if ((!textContent || textContent.trim().length === 0) && mediaUrls.length === 0) {
     return { error: "Message cannot be empty" };
   }
