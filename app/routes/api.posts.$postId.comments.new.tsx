@@ -91,7 +91,15 @@ export async function action({ params, request }: Route.ActionArgs) {
       socketIO.to(`post:${postId}`).emit('comment:new', {
         postId,
         comment: {
-          ...comment,
+          id: comment.id,
+          postId: comment.postId,
+          userId: comment.userId,
+          textContent: comment.textContent,
+          createdAt: comment.createdAt.toISOString(),
+          updatedAt: comment.updatedAt.toISOString(),
+          deletedAt: comment.deletedAt?.toISOString() || null,
+          parentCommentId: comment.parentCommentId,
+          user: comment.user,
           replies: [],
         },
       });
@@ -101,7 +109,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     // Create notification
     const isReply = !!validated.parentCommentId;
-    if (isReply) {
+    if (isReply && validated.parentCommentId) {
       // Notify parent comment author about reply
       const parentComment = await db.comment.findUnique({
         where: { id: validated.parentCommentId },

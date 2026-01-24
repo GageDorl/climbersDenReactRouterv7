@@ -32,7 +32,7 @@ export function PostGridPreview({
       )}
 
       {/* Overlay with stats */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-all">
         <div className="flex flex-col items-center gap-1">
           <Heart className="w-6 h-6 text-white fill-white" />
           <span className="text-white font-semibold text-sm">{likeCount}</span>

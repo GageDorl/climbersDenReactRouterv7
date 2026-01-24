@@ -78,7 +78,18 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
     if (realtime.io) {
       realtime.io.to(`post:${comment.postId}`).emit('comment:edited', {
         postId: comment.postId,
-        comment: updated,
+        comment: {
+          id: updated.id,
+          postId: updated.postId,
+          userId: updated.userId,
+          textContent: updated.textContent,
+          createdAt: updated.createdAt.toISOString(),
+          updatedAt: updated.updatedAt.toISOString(),
+          deletedAt: updated.deletedAt?.toISOString() || null,
+          parentCommentId: updated.parentCommentId,
+          user: updated.user,
+          replies: [],
+        },
       });
     }
 

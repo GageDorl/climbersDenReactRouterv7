@@ -50,7 +50,8 @@ export function triggerHaptic(pattern: HapticPattern | keyof typeof HAPTIC_PATTE
     const patternConfig = typeof pattern === 'string' ? HAPTIC_PATTERNS[pattern] : pattern;
     
     if (patternConfig.duration) {
-      vibrator.call(navigator, patternConfig.duration);
+      const vibratePattern = typeof patternConfig.duration === 'number' ? [patternConfig.duration] : patternConfig.duration;
+      vibrator.call(navigator, vibratePattern);
       return true;
     }
   } catch (error) {
@@ -68,7 +69,7 @@ export function stopVibration(): void {
   if (supportsVibration()) {
     try {
       const vibrator = navigator.vibrate || (navigator as any).webkitVibrate;
-      vibrator.call(navigator, 0);
+      vibrator.call(navigator, [0]);
     } catch (error) {
       console.debug('[Haptic] Failed to stop vibration:', error);
     }

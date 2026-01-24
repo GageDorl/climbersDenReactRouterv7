@@ -1,4 +1,3 @@
-import type { Route } from "./+types/auth.login";
 import { redirect } from "react-router";
 import { Form, useNavigation, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -8,8 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { createUserSession, getUserId, verifyPassword } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { loginSchema } from "~/lib/validation";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 
-export const loader = async ({ request }: Route.LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Redirect to posts feed if already logged in
   const userId = await getUserId(request);
   if (userId) {
@@ -18,84 +18,97 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   return null;
 };
 
-export const action = async ({ request }: Route.ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const formData = await request.formData();
-  const emailOrUsername = formData.get("emailOrUsername");
-  const password = formData.get("password");
-  const redirectTo = (formData.get("redirectTo") as string) || "/posts";
+  try {
+    const formData = await request.formData();
+    const emailOrUsername = formData.get("emailOrUsername");
+    const password = formData.get("password");
+    const redirectTo = (formData.get("redirectTo") as string) || "/posts";
 
-  // Debug: check what we're getting
-  console.log("[Login] Form data:", { emailOrUsername, password });
+    // Debug: check what we're getting
+    console.log("[Login] Form data:", { emailOrUsername, password, redirectTo });
 
-  // Check if fields are null
-  if (!emailOrUsername || !password) {
+    // Check if fields are null
+    if (!emailOrUsername || !password) {
+      console.log("[Login] Missing fields");
+      return {
+        error: "Email/username and password are required",
+        fields: { emailOrUsername: emailOrUsername as string },
+      };
+    }
+
+    // Validate input
+    const result = loginSchema.safeParse({ emailOrUsername, password });
+
+    if (!result.success) {
+      console.log("[Login] Validation failed:", result.error.issues);
+      return {
+        error: result.error.issues[0].message,
+        fields: { emailOrUsername },
+      };
+    }
+
+    const { emailOrUsername: validEmailOrUsername, password: validPassword } = result.data;
+
+    // Find user by email or username (displayName)
+    const user = await db.user.findFirst({
+      where: {
+        OR: [
+          { email: validEmailOrUsername },
+          { displayName: validEmailOrUsername },
+        ],
+      },
+    });
+
+    if (!user) {
+      console.log("[Login] User not found");
+      return {
+        error: "Invalid email/username or password",
+        fields: { emailOrUsername: validEmailOrUsername },
+      };
+    }
+
+    // Verify password
+    const isValid = await verifyPassword(validPassword, user.passwordHash);
+
+    if (!isValid) {
+      console.log("[Login] Invalid password");
+      return {
+        error: "Invalid email/username or password",
+        fields: { emailOrUsername: validEmailOrUsername },
+      };
+    }
+
+    // Update last active
+    await db.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+    });
+
+    console.log("[Login] Creating session for user:", user.id);
+    // Create session and redirect
+    return createUserSession(user.id, redirectTo);
+  } catch (error) {
+    console.error("[Login] Error:", error);
     return {
-      error: "Email/username and password are required",
-      fields: { emailOrUsername: emailOrUsername as string },
+      error: "An error occurred during login",
+      fields: {},
     };
   }
+};
 
-  // Validate input
-  const result = loginSchema.safeParse({ emailOrUsername, password });
-
-  if (!result.success) {
-    return {
-      error: result.error.issues[0].message,
-      fields: { emailOrUsername },
-    };
-  }
-
-  const { emailOrUsername: validEmailOrUsername, password: validPassword } = result.data;
-
-  // Find user by email or username (displayName)
-  const user = await db.user.findFirst({
-    where: {
-      OR: [
-        { email: validEmailOrUsername },
-        { displayName: validEmailOrUsername },
-      ],
-    },
-  });
-
-  if (!user) {
-    return {
-      error: "Invalid email/username or password",
-      fields: { emailOrUsername: validEmailOrUsername },
-    };
-  }
-
-  // Verify password
-  const isValid = await verifyPassword(validPassword, user.passwordHash);
-
-  if (!isValid) {
-    return {
-      error: "Invalid email/username or password",
-      fields: { emailOrUsername: validEmailOrUsername },
-    };
-  }
-
-  // Update last active
-  await db.user.update({
-    where: { id: user.id },
-    data: { lastActiveAt: new Date() },
-  });
-
-  // Create session and redirect
-  return createUserSession(user.id, redirectTo);
-}
-
-export default function Login({ actionData }: Route.ComponentProps) {
+export default function Login({ actionData }: { actionData?: any }) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/posts";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
