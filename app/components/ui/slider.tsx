@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 interface SliderProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'> {
   value: number[];
   onValueChange: (value: number[]) => void;
   min?: number;

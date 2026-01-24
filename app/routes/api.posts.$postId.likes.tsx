@@ -10,6 +10,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const postId = params.postId;
 
+  if (!postId) {
+    throw new Response('Post ID is required', { status: 400 });
+  }
+
   // Get all users who liked this post
   const likes = await db.like.findMany({
     where: { postId },
@@ -25,7 +29,27 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     orderBy: { createdAt: 'desc' },
   });
 
+  const likedUserIds = likes
+    .map(like => like.user.id)
+    .filter(id => id !== userId);
+
+  const following = likedUserIds.length
+    ? await db.follow.findMany({
+        where: {
+          followerId: userId,
+          followedId: { in: likedUserIds },
+        },
+        select: { followedId: true },
+      })
+    : [];
+
+  const followingSet = new Set(following.map(f => f.followedId));
+
   return {
-    users: likes.map(like => like.user),
+    users: likes.map(like => ({
+      ...like.user,
+      isCurrentUser: like.user.id === userId,
+      isFollowing: followingSet.has(like.user.id),
+    })),
   };
 }

@@ -20,7 +20,7 @@ export function CommentPreview({
 }: CommentPreviewProps) {
   // Calculate total displayed comments (top-level + visible replies)
   const displayedCount = comments.reduce((total, comment) => {
-    const repliesCount = comment.replies?.length || 0;
+    const repliesCount = (comment as any).replies?.length || 0;
     return total + 1 + repliesCount; // 1 for the comment itself + its visible replies
   }, 0);
   

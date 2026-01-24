@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { Card, CardContent, CardHeader, CardMedia } from '~/components/ui/card';
-import { Button } from '~/components/ui/button';
-import { CommentPreview, PostEngagementFooter, CommentThread, CommentInput } from './index';
+import { CommentPreview, PostEngagementFooter, CommentThread, CommentInput, ShareModal, PostOptionsMenu } from './index';
 import { DoubleTapHeart } from './double-tap-heart';
 import { useSocket } from '~/hooks/use-socket';
 import { useDoubleTap } from '~/hooks/use-double-tap';
@@ -37,13 +36,15 @@ interface PostCardProps {
 
 export function PostCard({ post, currentUserId, showActions = true, showComments = true, initialShowComments = false }: PostCardProps) {
   const isOwnPost = currentUserId === post.user.id;
-  const shareCount = post.shareCount || 0;
   const [showCommentThread, setShowCommentThread] = useState(initialShowComments);
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [commentCount, setCommentCount] = useState(post.commentCount);
   const [comments, setComments] = useState(post.comments || []);
   const [doubleTapHeart, setDoubleTapHeart] = useState({ visible: false, x: 0, y: 0 });
+  const [shareCount, setShareCount] = useState(post.shareCount || 0);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
   const likeFetcher = useFetcher();
   const { socket } = useSocket();
   const { trigger: triggerHaptic } = useHapticFeedback();
@@ -220,12 +221,16 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
               </p>
             </div>
           </div>
-          {isOwnPost && showActions && (
-            <form method="post" action={`/api/posts/${post.id}/delete`}>
-              <Button variant="destructive" size="sm" type="submit">
-                Delete
-              </Button>
-            </form>
+          {showActions && (
+            <PostOptionsMenu
+              postId={post.id}
+              onShare={() => {
+                setShareStatus(null);
+                setShareModalOpen(true);
+              }}
+              deleteAction={isOwnPost ? `/api/posts/${post.id}/delete` : undefined}
+              canDelete={isOwnPost}
+            />
           )}
         </div>
       </CardHeader>
@@ -290,6 +295,10 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
             isLiked={isLiked}
             onCommentClick={() => setShowCommentThread(!showCommentThread)}
             onLikeClick={handleLike}
+            onShareClick={() => {
+              setShareStatus(null);
+              setShareModalOpen(true);
+            }}
           />
         )}
 
@@ -342,6 +351,24 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
           </div>
         )}
       </CardContent>
+
+      <ShareModal
+        postId={post.id}
+        postTitle={post.textContent || `${post.user.displayName}'s post`}
+        postAuthor={post.user.displayName}
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        onShared={(method) => {
+          setShareCount(prev => prev + 1);
+          if (method === 'copy') {
+            setShareStatus('Link copied to clipboard.');
+          } else if (method === 'native') {
+            setShareStatus('Shared with your device share sheet.');
+          } else {
+            setShareStatus('Ready to share in messages.');
+          }
+        }}
+      />
     </Card>
   );
 }

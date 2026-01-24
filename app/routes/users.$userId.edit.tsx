@@ -349,7 +349,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
         } catch (compressionError) {
           console.error('Compression failed:', compressionError);
           alert('Image is too large and compression failed. Please try a smaller image.');
-          setProfilePhotoUrl(user.profilePhoto || '');
+          setProfilePhotoUrl(user.profilePhotoUrl || '');
           return;
         }
       }
@@ -363,12 +363,12 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
         setProfilePhotoUrl(uploadedUrl);
       } else {
         console.error('Upload failed');
-        setProfilePhotoUrl(user.profilePhoto || '');
+        setProfilePhotoUrl(user.profilePhotoUrl || '');
         alert('Upload failed. Please try again.');
       }
     } catch (error) {
       console.error('Profile upload error:', error);
-      setProfilePhotoUrl(user.profilePhoto || '');
+      setProfilePhotoUrl(user.profilePhotoUrl || '');
       
       // Better error messages based on error type
       if (error instanceof Error) {
@@ -429,7 +429,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <textarea
                   id="bio"
                   name="bio"
-                  className="w-full min-h-24 px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary" style={{focusRingColor: 'var(--primary-color)'}}
+                  className="w-full min-h-24 px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary"
                   maxLength={500}
                   defaultValue={actionData?.fields?.bio as string || user.bio || ''}
                   placeholder="Tell us about yourself..."
@@ -500,7 +500,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                   id="experienceLevel"
                   name="experienceLevel"
                   required
-                  className="w-full px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary" style={{focusRingColor: 'var(--primary-color)'}}
+                  className="w-full px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary"
                   defaultValue={actionData?.fields?.experienceLevel as string || user.experienceLevel}
                 >
                   <option value="">Select your experience level</option>

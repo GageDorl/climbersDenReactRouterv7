@@ -39,7 +39,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const formData = await request.formData();
-  const displayName = formData.get("displayName");
   const bio = formData.get("bio");
   const climbingStyles = formData.getAll("climbingStyles");
   const experienceLevel = formData.get("experienceLevel");
@@ -47,7 +46,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Validate input
   const result = profileSetupSchema.safeParse({
-    displayName,
     bio: bio || undefined,
     climbingStyles,
     experienceLevel,
@@ -56,29 +54,16 @@ export async function action({ request }: Route.ActionArgs) {
   if (!result.success) {
     return {
       error: result.error.issues[0].message,
-      fields: { displayName, bio, climbingStyles, experienceLevel },
+      fields: { bio, climbingStyles, experienceLevel },
     };
   }
 
-  const { displayName: validDisplayName, bio: validBio, climbingStyles: validStyles, experienceLevel: validLevel } = result.data;
-
-  // Check if displayName is already taken by another user
-  const existingUser = await db.user.findUnique({
-    where: { displayName: validDisplayName },
-  });
-
-  if (existingUser && existingUser.id !== userId) {
-    return {
-      error: "This username is already taken. Please choose another.",
-      fields: { displayName: validDisplayName, bio: validBio, climbingStyles: validStyles, experienceLevel: validLevel },
-    };
-  }
+  const { bio: validBio, climbingStyles: validStyles, experienceLevel: validLevel } = result.data;
 
   // Update user profile
   await db.user.update({
     where: { id: userId },
     data: {
-      displayName: validDisplayName,
       bio: validBio,
       climbingStyles: validStyles,
       experienceLevel: validLevel,
@@ -241,24 +226,11 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                name="displayName"
-                type="text"
-                required
-                maxLength={100}
-                defaultValue={actionData?.fields?.displayName as string}
-                placeholder="Your climbing name"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="bio">Bio (optional)</Label>
               <textarea
                 id="bio"
                 name="bio"
-                className="w-full min-h-25 px-3 py-2 text-sm rounded-md border-default bg-surface text-primary placeholder:text-muted focus:outline-none focus:ring-2" style={{focusRingColor: 'var(--primary-color)'}}
+                className="w-full min-h-25 px-3 py-2 text-sm rounded-md border-default bg-surface text-primary placeholder:text-muted focus:outline-none focus:ring-2"
                 maxLength={500}
                 defaultValue={actionData?.fields?.bio as string}
                 placeholder="Tell us about yourself..."
@@ -296,7 +268,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
                       id={`style-${style}`}
                       name="climbingStyles"
                       value={style}
-                      className="w-4 h-4 bg-surface border-default rounded focus:ring-2" style={{color: 'var(--primary-color)', focusRingColor: 'var(--primary-color)'}}
+                      className="w-4 h-4 bg-surface border-default rounded focus:ring-2" style={{color: 'var(--primary-color)'}}
                       defaultChecked={
                         actionData?.fields?.climbingStyles?.includes(style as any)
                       }
@@ -315,7 +287,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
                 id="experienceLevel"
                 name="experienceLevel"
                 required
-                className="w-full px-3 py-2 text-sm rounded-md border-default bg-surface text-primary focus:outline-none focus:ring-2" style={{focusRingColor: 'var(--primary-color)'}}
+                className="w-full px-3 py-2 text-sm rounded-md border-default bg-surface text-primary focus:outline-none focus:ring-2"
                 defaultValue={actionData?.fields?.experienceLevel as string}
               >
                 <option value="">Select your experience level</option>

@@ -4,3 +4,7 @@ export { CommentThread } from './comment-thread';
 export { CommentSkeleton, CommentThreadSkeleton } from './comment-skeleton';
 export { PostEngagementFooter } from './post-engagement-footer';
 export { CommentPreview } from './comment-preview';
+export { PostMetrics } from './post-metrics';
+export { ShareButton } from './share-button';
+export { ShareModal } from './share-modal';
+export { PostOptionsMenu } from './post-options-menu';

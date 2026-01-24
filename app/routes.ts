@@ -40,11 +40,13 @@ export default [
   // API routes
   route("api/user/location", "routes/api.user.location.tsx"),
   route("api/users/nearby", "routes/api.users.nearby.tsx"),
+  route("api/users/search", "routes/api.users.search.tsx"),
   route("api/users/:userId/follow", "routes/api.users.$userId.follow.tsx"),
   route("api/posts/:postId/like", "routes/api.posts.$postId.like.tsx"),
   route("api/posts/:postId/delete", "routes/api.posts.$postId.delete.tsx"),
   route("api/posts/:postId/likes", "routes/api.posts.$postId.likes.tsx"),
   route("api/posts/:postId/comments", "routes/api.posts.$postId.comments.tsx"),
+  route("api/posts/:postId/preview", "routes/api.posts.$postId.preview.tsx"),
   route("api/posts/:postId/comments/new", "routes/api.posts.$postId.comments.new.tsx"),
   route("api/comments/:commentId/delete", "routes/api.comments.$commentId.delete.tsx"),
   route("api/comments/:commentId/edit", "routes/api.comments.$commentId.edit.tsx"),

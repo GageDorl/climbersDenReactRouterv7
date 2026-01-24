@@ -1,14 +1,16 @@
-import { Form, Link, redirect, useLoaderData, useSearchParams } from "react-router";
+import { Form, Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/messages.new";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
-import { useState } from "react";
+import { PageWrapper } from "~/components/ui/page-wrapper";
+import { useEffect, useRef, useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await requireUserId(request);
   const url = new URL(request.url);
   const recipientUsername = url.searchParams.get("to");
   const query = url.searchParams.get("q") || "";
+  const prefill = url.searchParams.get("prefill") || "";
 
   let recipientUser = null;
   let searchResults: any[] = [];
@@ -42,7 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
   }
 
-  return { recipientUser, searchResults, query };
+  return { recipientUser, searchResults, query, prefill };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -121,13 +123,66 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function NewMessage() {
-  const { recipientUser, searchResults, query } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { recipientUser, searchResults, query, prefill } = useLoaderData<typeof loader>();
   const [selectedRecipient, setSelectedRecipient] = useState(recipientUser);
+  const [queryState, setQueryState] = useState(query);
+  const [clientResults, setClientResults] = useState<any[]>(searchResults);
+  const [textContent, setTextContent] = useState(prefill || "");
+  const debounceRef = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Prefer sessionStorage prefill if present (set by share modal)
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const s = sessionStorage.getItem('message_prefill');
+        if (s && !textContent) {
+          setTextContent(s);
+          sessionStorage.removeItem('message_prefill');
+        }
+      }
+    } catch (e) {
+      // ignore sessionStorage errors
+    }
+  }, []);
+
+  // Live-search users as queryState changes (debounced)
+  useEffect(() => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+
+    if (!queryState || queryState.length < 2) {
+      setClientResults([]);
+      return;
+    }
+
+    debounceRef.current = window.setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(queryState)}`, {
+          signal: abortRef.current.signal,
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setClientResults(data.users || []);
+      } catch (err) {
+        if ((err as any).name === 'AbortError') return;
+        console.error('User search failed', err);
+      }
+    }, 250);
+
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, [queryState]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
-      <div className="mx-auto max-w-2xl px-4">
+    <PageWrapper maxWidth="2xl">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
+        <div className="mx-auto max-w-2xl px-4">
         {/* Header */}
         <div className="mb-6 flex items-center space-x-4">
           <Link
@@ -165,23 +220,24 @@ export default function NewMessage() {
                 >
                   Search for a user
                 </label>
-                <Form method="get">
+                <div>
                   <input
                     type="text"
                     name="q"
                     id="search"
-                    defaultValue={query}
+                    value={queryState}
+                    onChange={(e) => setQueryState(e.target.value)}
                     placeholder="Enter username..."
                     className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     autoComplete="off"
                   />
-                </Form>
+                </div>
               </div>
 
               {/* Search Results */}
-              {searchResults.length > 0 && (
+              {clientResults.length > 0 && (
                 <div className="space-y-2">
-                  {searchResults.map((user) => (
+                  {clientResults.map((user) => (
                     <button
                       key={user.id}
                       onClick={() => setSelectedRecipient(user)}
@@ -206,13 +262,13 @@ export default function NewMessage() {
                 </div>
               )}
 
-              {query && searchResults.length === 0 && (
+              {queryState && clientResults.length === 0 && (
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                  No users found matching "{query}"
+                  No users found matching "{queryState}"
                 </p>
               )}
 
-              {!query && (
+              {!queryState && (
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                   Type at least 2 characters to search for users
                 </p>
@@ -269,6 +325,8 @@ export default function NewMessage() {
                     rows={6}
                     placeholder="Type your message..."
                     className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
                     required
                   />
                 </div>
@@ -291,7 +349,8 @@ export default function NewMessage() {
             </>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

@@ -76,26 +76,29 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
       },
     });
 
+    // Build payload matching CommentPayload (strings for timestamps, include replies)
+    const payloadComment = {
+      id: updated.id,
+      postId: updated.postId,
+      userId: updated.userId,
+      textContent: updated.textContent,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+      deletedAt: updated.deletedAt ? updated.deletedAt.toISOString() : null,
+      parentCommentId: updated.parentCommentId,
+      user: updated.user,
+      replies: [],
+    };
+
     // Emit Socket.IO event for real-time updates
     if (realtime.io) {
       realtime.io.to(`post:${comment.postId}`).emit('comment:edited', {
         postId: comment.postId,
-        comment: {
-          id: updated.id,
-          postId: updated.postId,
-          userId: updated.userId,
-          textContent: updated.textContent,
-          createdAt: updated.createdAt.toISOString(),
-          updatedAt: updated.updatedAt.toISOString(),
-          deletedAt: updated.deletedAt?.toISOString() || null,
-          parentCommentId: updated.parentCommentId,
-          user: updated.user,
-          replies: [],
-        },
+        comment: payloadComment,
       });
     }
 
-    return new Response(JSON.stringify({ comment: updated }), {
+    return new Response(JSON.stringify({ comment: payloadComment }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {

@@ -131,7 +131,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
                 maxLength={30}
               />
               <p className="text-xs text-muted-foreground">
-                This is how other climbers will see you
+                Use 3-30 characters: letters, numbers, or underscores only
               </p>
             </div>
 

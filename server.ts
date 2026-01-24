@@ -3,8 +3,9 @@ import { createRequestHandler } from "@react-router/express";
 import express from "express";
 import { createServer } from "http";
 import { initializeSocketIO } from "./app/lib/realtime.server";
+import { db } from './app/lib/db.server';
 
-const viteDevServer =
+const viteDevServer = 
   process.env.NODE_ENV === "production"
     ? undefined
     : await import("vite").then((vite) =>
@@ -12,8 +13,12 @@ const viteDevServer =
           server: { middlewareMode: true },
         })
       );
+      
 
+      
 const app = express();
+
+// (diagnostics removed)
 
 // Debug middleware
 app.use((req, res, next) => {
@@ -36,11 +41,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Vite dev server in development
-if (viteDevServer) {
-  app.use(viteDevServer.middlewares);
-} else {
-  // Serve static files in production
+// Serve static files in production; in dev the Vite middleware is mounted after
+// the app routes/SSR handler so API routes are not intercepted by Vite's index.html fallback.
+if (!viteDevServer) {
   app.use(
     "/assets",
     express.static("build/client/assets", { immutable: true, maxAge: "1y" })
@@ -48,7 +51,60 @@ if (viteDevServer) {
   app.use(express.static("build/client", { maxAge: "1h" }));
 }
 
-// React Router request handler
+// Note: preview requests are handled by the React Router loader
+// (`app/routes/api.posts.$postId.preview.tsx`). No Express fallback here.
+
+// Vite dev server middleware: mount before the SSR handler in dev, but
+// skip handling for API routes so Vite doesn't serve index.html for them.
+if (viteDevServer) {
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/.well-known/')) {
+      console.log('[SKIP VITE]', req.method, req.path);
+      return next();
+    }
+    return viteDevServer.middlewares(req, res, next);
+  });
+}
+
+
+// Permanent Express JSON preview endpoint — placed after static/Vite handling
+// but before the SSR handler to guarantee deterministic JSON responses.
+app.get('/api/posts/:postId/preview', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    if (!postId) return res.status(400).json({ error: 'missing_postId' });
+
+    const sanitizedId = String(postId).split(/\s+/).join('').trim();
+
+    const post = await db.post.findUnique({
+      where: { id: sanitizedId },
+      include: { user: true },
+    });
+
+    if (!post) return res.status(404).json({ error: 'not_found' });
+
+    const preview = {
+      id: post.id,
+      textContent: post.textContent ?? '',
+      mediaUrls: post.mediaUrls || [],
+      user: {
+        id: post.user.id,
+        displayName: post.user.displayName ?? post.user.displayName,
+        profilePhotoUrl: post.user.profilePhotoUrl ?? null,
+      },
+      caption: post.textContent ? post.textContent.slice(0, 120) : null,
+    };
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Vary', 'Accept');
+    return res.status(200).json(preview);
+  } catch (err) {
+    console.error('[preview api] error', err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 app.use(
   createRequestHandler({
     build: viteDevServer

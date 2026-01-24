@@ -6,8 +6,10 @@ export const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   displayName: z
     .string()
-    .min(1, 'Display name is required')
-    .max(100, 'Display name must be less than 100 characters'),
+    .trim()
+    .min(3, 'Display name must be at least 3 characters')
+    .max(30, 'Display name must be 30 characters or fewer')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Use letters, numbers, or underscores only (no spaces)'),
 });
 
 export const loginSchema = z.object({
@@ -16,7 +18,13 @@ export const loginSchema = z.object({
 });
 
 export const profileSetupSchema = z.object({
-  displayName: z.string().min(1).max(100),
+  displayName: z
+    .string()
+    .trim()
+    .min(3, 'Display name must be at least 3 characters')
+    .max(30, 'Display name must be 30 characters or fewer')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Use letters, numbers, or underscores only (no spaces)')
+    .optional(),
   bio: z.string().max(500).optional(),
   climbingStyles: z.array(z.enum(['bouldering', 'sport', 'trad', 'mixed'])),
   experienceLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),

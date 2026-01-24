@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,22 +6,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
+import { FollowButton } from '~/components/profile/follow-button';
+import { ClickableProfilePicture } from '~/components/ui/clickable-profile-picture';
 
-interface User {
+interface LikeUser {
   id: string;
   displayName: string;
   profilePhotoUrl: string | null;
+  isFollowing?: boolean;
+  isCurrentUser?: boolean;
 }
 
 interface LikesListModalProps {
   postId: string;
   likeCount: number;
-  trigger?: React.ReactNode;
+  trigger?: ReactNode;
 }
 
 export function LikesListModal({ postId, likeCount, trigger }: LikesListModalProps) {
   const [open, setOpen] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<LikeUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +33,8 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
     if (open && users.length === 0) {
       fetchLikes();
     }
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, postId]);
 
   const fetchLikes = async () => {
     setLoading(true);
@@ -48,6 +53,12 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
     }
   };
 
+  const title = useMemo(() => {
+    if (likeCount === 0) return 'No likes yet';
+    if (likeCount === 1) return 'Liked by 1 climber';
+    return `Liked by ${likeCount} climbers`;
+  }, [likeCount]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -59,7 +70,7 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Liked by</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="max-h-96 overflow-y-auto">
           {loading && (
@@ -71,33 +82,44 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
             <p className="text-center text-destructive py-4">{error}</p>
           )}
           {!loading && !error && users.length === 0 && (
-            <p className="text-center text-muted py-4">
-              No likes yet
-            </p>
+            <p className="text-center text-muted py-4">No likes yet</p>
           )}
           {!loading && !error && users.length > 0 && (
             <div className="space-y-3">
               {users.map(user => (
-                <a
+                <div
                   key={user.id}
-                  href={`/users/${user.displayName}`}
-                  className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary transition-colors"
+                  className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-secondary transition-colors"
                 >
-                  {user.profilePhotoUrl ? (
-                    <img
-                      src={user.profilePhotoUrl}
-                      alt={user.displayName}
-                      className="w-10 h-10 rounded-full object-cover"
+                  <div className="flex items-center gap-3 min-w-0">
+                    {user.profilePhotoUrl ? (
+                      <ClickableProfilePicture
+                        src={user.profilePhotoUrl}
+                        alt={user.displayName}
+                        size="md"
+                        username={user.displayName}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-surface font-bold">
+                        {user.displayName[0].toUpperCase()}
+                      </div>
+                    )}
+                    <a
+                      href={`/users/${user.id}`}
+                      className="font-semibold text-primary truncate hover:underline"
+                    >
+                      {user.displayName}
+                    </a>
+                  </div>
+                  {!user.isCurrentUser && (
+                    <FollowButton
+                      userId={user.id}
+                      initialIsFollowing={Boolean(user.isFollowing)}
+                      size="sm"
+                      variant="secondary"
                     />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-surface font-bold">
-                      {user.displayName[0].toUpperCase()}
-                    </div>
                   )}
-                  <span className="font-semibold text-primary">
-                    {user.displayName}
-                  </span>
-                </a>
+                </div>
               ))}
             </div>
           )}

@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router";
+import { useState, useEffect } from 'react';
 import type { Route } from "./+types/messages._index";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
@@ -170,12 +171,7 @@ export default function MessagesIndex() {
                       </div>
 
                       {lastMessage && (
-                        <p className="mt-1 text-sm text-secondary truncate">
-                          {isFromCurrentUser && "You: "}
-                          {lastMessage.textContent || (
-                            <span className="italic">Sent media</span>
-                          )}
-                        </p>
+                        <ConversationPreview lastMessage={lastMessage} isFromCurrentUser={isFromCurrentUser} />
                       )}
                     </div>
 
@@ -194,5 +190,70 @@ export default function MessagesIndex() {
           </div>
         )}
     </PageWrapper>
+  );
+}
+
+function ConversationPreview({ lastMessage, isFromCurrentUser }: { lastMessage: any; isFromCurrentUser: boolean }) {
+  const [isPostShare, setIsPostShare] = useState(false);
+  const [postPreview, setPostPreview] = useState<any | null>(null);
+  const [remainderText, setRemainderText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    if (lastMessage?.textContent && lastMessage.textContent.startsWith('__POST_SHARE__:')) {
+      const raw = lastMessage.textContent.slice('__POST_SHARE__:'.length);
+      const postId = raw.split(/\s|\r|\n/)[0]?.trim();
+      const remainder = raw.slice(postId ? postId.length : 0).trim();
+      setRemainderText(remainder || null);
+      if (!postId) return;
+      setIsPostShare(true);
+      (async () => {
+        try {
+          const res = await fetch(`/api/posts/${encodeURIComponent(postId)}/preview`, { headers: { Accept: 'application/json' } });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (mounted) setPostPreview(data);
+        } catch (e) {
+          // ignore
+        }
+      })();
+    } else {
+      setIsPostShare(false);
+      setPostPreview(null);
+      setRemainderText(null);
+    }
+    return () => { mounted = false; };
+  }, [lastMessage?.textContent]);
+
+  if (!isPostShare) {
+    return (
+      <p className="mt-1 text-sm text-secondary truncate">
+        {isFromCurrentUser && "You: "}
+        {lastMessage.textContent || (
+          <span className="italic">Sent media</span>
+        )}
+      </p>
+    );
+  }
+
+  if (postPreview) {
+    return (
+      <div className="mt-1 flex items-center space-x-2">
+        {postPreview.mediaUrls && postPreview.mediaUrls[0] ? (
+          <img src={postPreview.mediaUrls[0]} alt="preview" className="h-8 w-8 rounded object-cover" />
+        ) : (
+          <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">Post</div>
+        )}
+        <div className="truncate text-sm text-secondary">
+          {isFromCurrentUser && "You: "}
+          {postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}
+          {remainderText ? <span className="text-secondary"> — {remainderText}</span> : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <p className="mt-1 text-sm text-secondary truncate">{isFromCurrentUser && "You: "}Shared post</p>
   );
 }

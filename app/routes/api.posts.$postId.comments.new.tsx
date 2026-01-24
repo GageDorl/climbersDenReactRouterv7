@@ -44,8 +44,8 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     // If parentCommentId is provided, verify it exists and belongs to the same post
     let finalParentCommentId = validated.parentCommentId;
-    if (validated.parentCommentId) {
-      const parentComment = await db.comment.findUnique({
+      if (validated.parentCommentId) {
+        const parentComment = await db.comment.findUnique({
         where: { id: validated.parentCommentId },
       });
 
@@ -88,23 +88,22 @@ export async function action({ params, request }: Route.ActionArgs) {
     // Emit Socket.IO event for real-time updates
     const socketIO = getSocketIO();
     if (socketIO) {
-      console.log('[API] Emitting comment:new to room post:', postId);
-      console.log('[API] socketIO exists:', !!socketIO);
-      console.log('[API] Comment data:', comment.id);
+      const payloadComment = {
+        id: comment.id,
+        postId: comment.postId,
+        userId: comment.userId,
+        textContent: comment.textContent,
+        createdAt: comment.createdAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString(),
+        deletedAt: comment.deletedAt ? comment.deletedAt.toISOString() : null,
+        parentCommentId: comment.parentCommentId,
+        user: comment.user,
+        replies: [],
+      };
+
       socketIO.to(`post:${postId}`).emit('comment:new', {
         postId,
-        comment: {
-          id: comment.id,
-          postId: comment.postId,
-          userId: comment.userId,
-          textContent: comment.textContent,
-          createdAt: comment.createdAt.toISOString(),
-          updatedAt: comment.updatedAt.toISOString(),
-          deletedAt: comment.deletedAt?.toISOString() || null,
-          parentCommentId: comment.parentCommentId,
-          user: comment.user,
-          replies: [],
-        },
+        comment: payloadComment,
       });
     } else {
       console.log('[API] socketIO is null! getSocketIO() returned null');
@@ -112,10 +111,10 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     // Create notification
     const isReply = !!validated.parentCommentId;
-    if (isReply && validated.parentCommentId) {
+    if (isReply) {
       // Notify parent comment author about reply
       const parentComment = await db.comment.findUnique({
-        where: { id: validated.parentCommentId },
+        where: { id: validated.parentCommentId as string },
         select: { userId: true },
       });
 
@@ -158,7 +157,12 @@ export async function action({ params, request }: Route.ActionArgs) {
       }
     }
 
-    return new Response(JSON.stringify({ comment }), { 
+    return new Response(JSON.stringify({ comment: {
+      ...comment,
+      createdAt: comment.createdAt.toISOString(),
+      updatedAt: comment.updatedAt.toISOString(),
+      replies: [],
+    } }), { 
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });

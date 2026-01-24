@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useEffect, useState } from "react";
 
 interface ConversationItemProps {
   conversation: {
@@ -25,6 +26,32 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
 
   const lastMessage = conversation.lastMessage;
   const isFromCurrentUser = lastMessage?.senderId === currentUserId;
+  const [isPostShare, setIsPostShare] = useState(false);
+  const [postPreview, setPostPreview] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    if (lastMessage?.textContent && lastMessage.textContent.startsWith('__POST_SHARE__:')) {
+      const raw = lastMessage.textContent.slice('__POST_SHARE__:'.length);
+      const postId = raw.split(/\s|\r|\n/)[0]?.trim();
+      if (!postId) return;
+      setIsPostShare(true);
+      (async () => {
+        try {
+          const res = await fetch(`/api/posts/${encodeURIComponent(postId)}/preview`, { headers: { Accept: 'application/json' } });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (mounted) setPostPreview(data);
+        } catch (e) {
+          // ignore
+        }
+      })();
+    } else {
+      setIsPostShare(false);
+      setPostPreview(null);
+    }
+    return () => { mounted = false; };
+  }, [lastMessage?.textContent]);
 
   return (
     <Link
@@ -68,12 +95,30 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
           </div>
 
           {lastMessage && (
-            <p className="mt-1 truncate text-sm text-secondary">
-              {isFromCurrentUser && "You: "}
-              {lastMessage.textContent || (
-                <span className="italic">Sent media</span>
-              )}
-            </p>
+            isPostShare ? (
+              postPreview ? (
+                <div className="mt-1 flex items-center space-x-2">
+                  {postPreview.mediaUrls && postPreview.mediaUrls[0] ? (
+                    <img src={postPreview.mediaUrls[0]} alt="preview" className="h-8 w-8 rounded object-cover" />
+                  ) : (
+                    <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">Post</div>
+                  )}
+                  <div className="truncate text-sm text-secondary">
+                    {isFromCurrentUser && "You: "}
+                    {postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 truncate text-sm text-secondary">{isFromCurrentUser && "You: "}Shared post</p>
+              )
+            ) : (
+              <p className="mt-1 truncate text-sm text-secondary">
+                {isFromCurrentUser && "You: "}
+                {lastMessage.textContent || (
+                  <span className="italic">Sent media</span>
+                )}
+              </p>
+            )
           )}
         </div>
 

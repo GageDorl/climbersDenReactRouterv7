@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-// Extract types and classes from mapbox-gl CommonJS module
-const { Map, Marker, Popup, NavigationControl } = mapboxgl as any;
 import { 
   initializeMapbox, 
   getMapboxStyle, 
@@ -45,10 +42,10 @@ export function CragMap({
   theme = 'light',
 }: CragMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<Map | null>(null);
-  const markersRef = useRef<Marker[]>([]);
-  const userMarkerRef = useRef<Marker | null>(null);
-  const popupRef = useRef<Popup | null>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
   const hasInitializedBoundsRef = useRef(false);
 
   // Initialize map
@@ -59,7 +56,7 @@ export function CragMap({
     initializeMapbox();
 
     // Create map instance
-    map.current = new Map({
+    map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: getMapboxStyle(theme),
       zoom: 10,
@@ -69,7 +66,7 @@ export function CragMap({
     });
 
     // Add navigation controls
-    map.current.addControl(new NavigationControl(), 'top-right');
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     // Listen for map movement to fetch new crags
     const handleMapMove = () => {
@@ -89,7 +86,7 @@ export function CragMap({
     // Add user location marker
     if (userLocation) {
       const userEl = createUserLocationMarker();
-      userMarkerRef.current = new Marker(userEl)
+      userMarkerRef.current = new mapboxgl.Marker(userEl)
         .setLngLat([userLocation.lon, userLocation.lat])
         .addTo(map.current);
     }
@@ -108,7 +105,7 @@ export function CragMap({
     if (!map.current) return;
 
     // Clear existing markers
-    markersRef.current.forEach((marker: Marker) => {
+    markersRef.current.forEach((marker: mapboxgl.Marker) => {
       marker.remove();
     });
     markersRef.current = [];
@@ -117,7 +114,7 @@ export function CragMap({
     crags.forEach((crag) => {
       const el = createCragMarkerElement(formatDifficulty(crag.grades || []));
       
-      const marker = new Marker(el)
+      const marker = new mapboxgl.Marker(el)
         .setLngLat([crag.longitude, crag.latitude])
         .addTo(map.current!);
 
@@ -127,7 +124,7 @@ export function CragMap({
         popupRef.current?.remove();
 
         // Create new popup
-        const popup = new Popup({ offset: 25 })
+        const popup = new mapboxgl.Popup({ offset: 25 })
           .setHTML(`
             <div class="p-2">
               <h3 class="font-semibold text-primary mb-1">${crag.name}</h3>

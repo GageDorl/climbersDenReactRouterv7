@@ -38,10 +38,6 @@ export function formatDateTime(date: Date | string): string {
   
   return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
 }
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 /**
  * Returns a relative time string (e.g., "2 hours ago", "yesterday")

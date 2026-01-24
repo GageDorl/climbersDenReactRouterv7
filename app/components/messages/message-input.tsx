@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from 'react-router';
 import { useFetcher } from "react-router";
 
 interface MessageInputProps {
@@ -11,17 +12,31 @@ interface MessageInputProps {
 
 export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onTypingStart, onTypingStop }: MessageInputProps) {
   const [textContent, setTextContent] = useState("");
+  // inputValue is what the textarea shows; textContent holds the actual value submitted
+  const [inputValue, setInputValue] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isPostShare, setIsPostShare] = useState(false);
+  const [postPreview, setPostPreview] = useState<any | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const fetcher = useFetcher();
+  const navigate = useNavigate();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    setTextContent(newValue);
+    // If this is a post-share marker, keep marker in textContent and treat typed text as appended content
+    if (isPostShare && textContent.startsWith('__POST_SHARE__:')) {
+      setInputValue(newValue);
+      const marker = textContent.split('\n')[0];
+      const appended = newValue ? `\n${newValue}` : '';
+      setTextContent(`${marker}${appended}`);
+    } else {
+      setTextContent(newValue);
+      setInputValue(newValue);
+    }
     
     // Auto-resize textarea
     const target = e.target;
@@ -65,6 +80,128 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
       }
     };
   }, []);
+
+  // If a prefill was set in sessionStorage (from share flow), use it and clear it
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const s = sessionStorage.getItem('message_prefill');
+        if (s && textContent.trim().length === 0) {
+          let applied = false;
+          try {
+            const parsed = JSON.parse(s);
+            if (parsed && parsed.type === 'post_share' && parsed.postId) {
+              // encode as marker so server stores concise identifier
+              const marker = `__POST_SHARE__:${parsed.postId}`;
+              setTextContent(marker);
+              setInputValue('');
+              setIsPostShare(true);
+              applied = true;
+            }
+          } catch (e) {
+            // not JSON, fallback to raw string
+          }
+
+          if (!applied) {
+            setTextContent(s);
+            setInputValue(s);
+          }
+
+          // Remove prefill only after applying it so it survives navigation delays
+          try {
+            sessionStorage.removeItem('message_prefill');
+          } catch (err) {}
+
+          // adjust textarea height after setting value
+          requestAnimationFrame(() => {
+            if (textareaRef.current) {
+              textareaRef.current.style.height = 'auto';
+              textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+              textareaRef.current.focus();
+            }
+          });
+        }
+      }
+    } catch (e) {
+      // ignore sessionStorage errors
+    }
+    // only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // If conversationId changes (navigating into a conversation), retry applying any prefill
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const s = sessionStorage.getItem('message_prefill');
+        if (s && textContent.trim().length === 0) {
+          let applied = false;
+          try {
+            const parsed = JSON.parse(s);
+            if (parsed && parsed.type === 'post_share' && parsed.postId) {
+              const marker = `__POST_SHARE__:${parsed.postId}`;
+              setTextContent(marker);
+              setInputValue('');
+              setIsPostShare(true);
+              applied = true;
+            }
+          } catch (e) {
+            // not JSON, fallback
+          }
+
+          if (!applied) {
+            setTextContent(s);
+            setInputValue(s);
+          }
+
+          try {
+            sessionStorage.removeItem('message_prefill');
+          } catch (err) {}
+
+          // Ensure textarea is focused and sized
+          requestAnimationFrame(() => {
+            if (textareaRef.current) {
+              textareaRef.current.style.height = 'auto';
+              textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+              textareaRef.current.focus();
+            }
+          });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    // run when conversationId changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  // If textContent encodes a post share marker, fetch post preview for display
+  useEffect(() => {
+    const markerPrefix = '__POST_SHARE__:';
+    if (textContent && textContent.startsWith(markerPrefix)) {
+      // Extract the id after the prefix and sanitize (strip newlines/whitespace)
+      const raw = textContent.slice(markerPrefix.length);
+      const postId = raw.split(/\s|\r|\n/)[0]?.trim();
+      if (!postId) return;
+      setIsPostShare(true);
+      setPostPreview(null);
+      (async () => {
+        try {
+          const res = await fetch(`/api/posts/${encodeURIComponent(postId)}/preview`, {
+            headers: { Accept: 'application/json' },
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          setPostPreview(data);
+        } catch (e) {
+          setPostPreview(null);
+        }
+      })();
+    } else {
+      setIsPostShare(false);
+      setPostPreview(null);
+    }
+  }, [textContent]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -143,6 +280,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
     
     // Clear form
     setTextContent("");
+    setInputValue("");
     setSelectedFiles([]);
     previewUrls.forEach((url) => URL.revokeObjectURL(url));
     setPreviewUrls([]);
@@ -232,17 +370,37 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
         </button>
 
         {/* Text input */}
-          <textarea
-            ref={textareaRef}
-            name="textContent"
-            value={textContent}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            rows={1}
-            className="w-full resize-none rounded-lg border-default px-4 py-2 text-sm focus:outline-none bg-surface text-primary"
-            required={selectedFiles.length === 0}
-          />
+          <div className="flex-1">
+            {isPostShare && postPreview && (
+              <div className="mb-2 cursor-pointer rounded border border-default p-2 bg-surface" onClick={() => navigate(`/posts/${postPreview.id}`)}>
+                <div className="flex items-center space-x-3">
+                  {postPreview.mediaUrls && postPreview.mediaUrls[0] ? (
+                    <img src={postPreview.mediaUrls[0]} alt="Preview" className="h-12 w-12 rounded object-cover" />
+                  ) : (
+                      <div className="h-12 w-12 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">
+                        {postPreview.caption ? postPreview.caption.slice(0, 30) : 'Post'}
+                      </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary">{postPreview.user?.displayName || 'Shared post'}</p>
+                      <p className="text-sm text-muted truncate">{postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <textarea
+              ref={textareaRef}
+              name="textContent"
+              value={inputValue}
+              onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
+              placeholder={isPostShare ? "Add an optional message..." : "Type a message..."}
+              rows={1}
+              className="w-full resize-none rounded-lg border-default px-4 py-2 text-sm focus:outline-none bg-surface text-primary"
+              required={selectedFiles.length === 0}
+            />
+          </div>
 
         {/* Send button */}
         <button

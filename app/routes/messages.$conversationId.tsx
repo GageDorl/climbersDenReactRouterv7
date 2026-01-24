@@ -304,9 +304,11 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
         displayName: "You",
         profilePhotoUrl: null,
       },
+      senderId: userId,
+      recipientId: otherParticipant?.id || '',
       textContent,
       mediaUrls: [...mediaUrls], // Ensure array is cloned
-      sentAt: now.toISOString(),
+      sentAt: now,
       readAt: null,
     };
     
