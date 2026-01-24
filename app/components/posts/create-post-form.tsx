@@ -324,15 +324,15 @@ export function CreatePostForm() {
               onChange={handleTextChange}
               rows={6}
               maxLength={2000}
-              className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 resize-none"
+              className="flex w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 resize-none"
               placeholder="Share your climbing experience, ask for beta, or connect with the community..."
             />
             <div className="flex justify-between items-center mt-1">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted">
                 {charCount}/2000 characters
               </p>
               {actionData?.error && (
-                <div className="flex items-center gap-1 text-sm text-red-500">
+                <div className="flex items-center gap-1 text-sm text-destructive">
                   <AlertCircle className="w-4 h-4" />
                   {actionData.error}
                 </div>
@@ -366,14 +366,14 @@ export function CreatePostForm() {
           {/* Media Upload Input */}
           <div>
             <Label htmlFor="media-input">Add Photos or Video</Label>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            <p className="text-sm text-muted mb-2">
               Upload up to {MAX_MEDIA_ITEMS} images or 1 video (max{' '}
               {MAX_FILE_SIZE / 1024 / 1024}MB, {MAX_VIDEO_DURATION / 60} min)
             </p>
             {isAtMaxCapacity && (
-              <div className="mb-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md flex gap-2">
-                <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+              <div className="mb-2 p-3 border border-default rounded-md flex gap-2" style={{backgroundColor: 'var(--accent-color)', opacity: 0.1}}>
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{color: 'var(--accent-color)'}} />
+                <p className="text-sm" style={{color: 'var(--accent-color)'}}>
                   Maximum media items reached. Remove items to add more.
                 </p>
               </div>
@@ -389,7 +389,7 @@ export function CreatePostForm() {
               disabled={isAtMaxCapacity}
               className="cursor-pointer"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-xs text-muted mt-2">
               Files upload directly to cloud storage (no server bottleneck)
             </p>
           </div>
@@ -398,7 +398,7 @@ export function CreatePostForm() {
           <div className="flex gap-4">
             <Button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1 btn-primary"
               disabled={textContent.trim().length === 0 && media.length === 0 || isSubmitting}
             >
               {isSubmitting ? (

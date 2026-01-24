@@ -24,11 +24,11 @@ export default function RouteSearch({ initialQuery, routes }: RouteSearchProps) 
         placeholder="Search routes by name or crag..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="block w-full rounded-md border border-gray-300 px-3 py-2"
+        className="block w-full rounded-md border border-default bg-surface text-primary px-3 py-2"
       />
 
       {routes.length > 0 && (
-        <div className="max-h-64 overflow-y-auto rounded-md border border-gray-200 bg-white">
+        <div className="max-h-64 overflow-y-auto rounded-md border border-default bg-surface">
           {routes.map((route) => (
             <button
               key={route.id}
@@ -41,10 +41,10 @@ export default function RouteSearch({ initialQuery, routes }: RouteSearchProps) 
                   routeInput.value = route.id;
                 }
               }}
-              className="block w-full border-b px-4 py-3 text-left hover:bg-gray-50 last:border-b-0"
+              className="block w-full border-b px-4 py-3 text-left hover:bg-secondary last:border-b-0"
             >
-              <p className="font-medium">{route.name}</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-primary">{route.name}</p>
+              <p className="text-sm text-secondary">
                 {route.crag.name} • {route.type} • {route.grade}
               </p>
             </button>

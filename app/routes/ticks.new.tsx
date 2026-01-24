@@ -142,11 +142,11 @@ export default function NewTick() {
   return (
     <PageWrapper maxWidth="2xl">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Log New Tick</h1>
+        <h1 className="text-3xl font-bold text-primary">Log New Tick</h1>
 
         {cragId && (
-          <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900 p-4">
-            <p className="text-sm text-blue-900 dark:text-blue-100">
+          <div className="rounded-lg p-4" style={{backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--primary-color) 30%, transparent)'}}>
+            <p className="text-sm" style={{color: 'var(--primary-color)'}}>
               Logging tick for: <span className="font-semibold">{cragName}</span>
             </p>
           </div>
@@ -155,7 +155,7 @@ export default function NewTick() {
         {routes.length > 0 ? (
           <>
             <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Select Route</h2>
+              <h2 className="text-lg font-semibold text-primary">Select Route</h2>
               <div className="grid gap-2">
                 {routes.map((route) => (
                   <button
@@ -166,12 +166,16 @@ export default function NewTick() {
                     }}
                     className={`p-4 rounded-lg border text-left transition-colors ${
                       selectedRoute?.uuid === route.uuid
-                        ? "border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/50"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        ? "bg-surface"
+                        : "border-default hover:bg-surface"
                     }`}
+                    style={selectedRoute?.uuid === route.uuid ? {
+                      borderColor: 'var(--primary-color)',
+                      backgroundColor: 'color-mix(in srgb, var(--primary-color) 5%, var(--surface))'
+                    } : {}}
                   >
-                    <p className="font-semibold text-gray-900 dark:text-white">{route.name}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="font-semibold text-primary">{route.name}</p>
+                    <p className="text-sm text-secondary">
                       {route.grade} • {Object.entries(route.type || {})
                         .filter(([, v]) => v)
                         .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1))
@@ -183,15 +187,15 @@ export default function NewTick() {
             </div>
 
             {selectedRoute && showForm && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Tick Details</h2>
+              <div className="rounded-lg border-default bg-surface p-6">
+                <h2 className="mb-4 text-lg font-semibold text-primary">Tick Details</h2>
                 <TickFormForNewTick route={selectedRoute} />
               </div>
             )}
           </>
         ) : (
-          <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-8 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-surface p-8 text-center">
+            <p className="text-muted">
               No routes available. Please select a crag first.
             </p>
           </div>
@@ -216,22 +220,22 @@ function TickFormForNewTick({ route }: { route: any }) {
       <input type="hidden" name="cragId" value={route.cragId} />
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Date Climbed</label>
+        <label className="block text-sm font-medium text-secondary">Date Climbed</label>
         <input
           type="date"
           name="date"
           required
           max={new Date().toISOString().split("T")[0]}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border-default px-3 py-2 bg-surface text-primary"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Send Style</label>
+        <label className="block text-sm font-medium text-secondary">Send Style</label>
         <select
           name="sendStyle"
           required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border-default px-3 py-2 bg-surface text-primary"
         >
           <option value="">Select send style...</option>
           {sendStyles.map((style) => (
@@ -243,21 +247,21 @@ function TickFormForNewTick({ route }: { route: any }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Attempts (optional)</label>
+        <label className="block text-sm font-medium text-secondary">Attempts (optional)</label>
         <input
           type="number"
           name="attempts"
           min="1"
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border-default px-3 py-2 bg-surface text-primary"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Personal Notes</label>
+        <label className="block text-sm font-medium text-secondary">Personal Notes</label>
         <textarea
           name="personalNotes"
           maxLength={1000}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border-default px-3 py-2 bg-surface text-primary"
           rows={4}
           placeholder="What do you remember about this climb?"
         />

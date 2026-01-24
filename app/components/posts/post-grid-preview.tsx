@@ -19,7 +19,7 @@ export function PostGridPreview({
   return (
     <Link 
       to={`/posts/${postId}`}
-      className="group relative aspect-square overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700 hover:shadow-lg transition-shadow"
+      className="group relative aspect-square overflow-hidden rounded-lg bg-secondary hover:shadow-lg transition-shadow"
     >
       {mediaUrl ? (
         <img
@@ -28,7 +28,7 @@ export function PostGridPreview({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-gray-600" />
+        <div className="w-full h-full flex items-center justify-center bg-surface" />
       )}
 
       {/* Overlay with stats */}

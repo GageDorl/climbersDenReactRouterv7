@@ -24,17 +24,15 @@ export function CragsMapSection({
   if (!userLocationPermissionGranted) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-primary">
           Nearby Climbing Areas
         </h2>
-        <Card className="p-6 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+        <Card className="p-6 bg-secondary border-default">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-primary" />
             <div className="flex-1">
-              <h3 className="font-semibold text-amber-900 dark:text-amber-200 mb-1">
-                Enable Location to See Crags Near You
-              </h3>
-              <p className="text-sm text-amber-800 dark:text-amber-300 mb-4">
+              <h3 className="font-semibold text-primary mb-1">Enable Location to See Crags Near You</h3>
+              <p className="text-sm text-muted mb-4">
                 Share your location to view climbing areas on a map and discover new crags in your area.
               </p>
               <Link to="/users/me/edit">
@@ -53,18 +51,16 @@ export function CragsMapSection({
   // Show nearby crags with a link to browse them
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <h2 className="text-xl font-semibold text-primary">
         Nearby Climbing Areas
       </h2>
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+      <Card className="p-6 bg-surface border-default">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">
+            <h3 className="font-semibold text-primary mb-1">
               Browse Climbing Areas Near You
             </h3>
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              Discover crags and climbing routes in your area
-            </p>
+            <p className="text-sm text-muted">Discover crags and climbing routes in your area</p>
           </div>
           <Link to="/crags">
             <Button>

@@ -75,17 +75,13 @@ export function NearbyUsersSection({
   if (!userLocationPermissionGranted) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Discover Nearby Climbers
-        </h2>
-        <Card className="p-6 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+        <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
+        <Card className="p-6 border-default bg-surface">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-primary" />
             <div className="flex-1">
-              <h3 className="font-semibold text-amber-900 dark:text-amber-200 mb-1">
-                Enable Location to See Nearby Climbers
-              </h3>
-              <p className="text-sm text-amber-800 dark:text-amber-300 mb-4">
+              <h3 className="font-semibold mb-1 text-primary">Enable Location to See Nearby Climbers</h3>
+              <p className="text-sm mb-4 text-muted">
                 Share your location to discover climbers near you and find climbing partners.
                 Your exact coordinates are never shared—only your city is visible to other users.
               </p>
@@ -106,11 +102,9 @@ export function NearbyUsersSection({
   if (loading) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Discover Nearby Climbers
-        </h2>
+        <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
         <div className="flex justify-center py-8">
-          <Loader className="h-6 w-6 animate-spin text-blue-500" />
+          <Loader className="h-6 w-6 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -120,17 +114,13 @@ export function NearbyUsersSection({
   if (error) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Discover Nearby Climbers
-        </h2>
-        <Card className="p-6 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+        <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
+        <Card className="p-6 alert-destructive">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-white flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-red-900 dark:text-red-200">
-                Error Loading Nearby Climbers
-              </h3>
-              <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+              <h3 className="font-semibold text-white">Error Loading Nearby Climbers</h3>
+              <p className="text-sm text-white">{error}</p>
             </div>
           </div>
         </Card>
@@ -142,14 +132,10 @@ export function NearbyUsersSection({
   if (nearbyUsers.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Discover Nearby Climbers
-        </h2>
+        <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
         <Card className="p-8 text-center">
-          <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            No climbers found nearby. Check back later or expand your search.
-          </p>
+          <MapPin className="h-8 w-8 text-muted mx-auto mb-3" />
+          <p className="text-muted mb-4">No climbers found nearby. Check back later or expand your search.</p>
           <Link to="/users/search">
             <Button variant="outline">Search All Climbers</Button>
           </Link>
@@ -162,12 +148,8 @@ export function NearbyUsersSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Discover Nearby Climbers
-        </h2>
-        <span className="text-sm text-gray-600 dark:text-gray-400">
-          {nearbyUsers.length} climber{nearbyUsers.length !== 1 ? 's' : ''} nearby
-        </span>
+        <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
+        <span className="text-sm text-secondary">{nearbyUsers.length} climber{nearbyUsers.length !== 1 ? 's' : ''} nearby</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

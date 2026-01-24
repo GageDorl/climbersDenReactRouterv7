@@ -100,7 +100,7 @@ export default function PostsIndex({ loaderData }: Route.ComponentProps) {
           <CardContent>
             <a
               href="/posts/new"
-              className="block w-full px-4 py-2 text-center bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="block w-full px-4 py-2 text-center btn-primary rounded-md"
             >
               Create Post
             </a>
@@ -110,7 +110,7 @@ export default function PostsIndex({ loaderData }: Route.ComponentProps) {
         {posts.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-muted">
                 No posts yet. Be the first to share something!
               </p>
             </CardContent>
@@ -129,7 +129,7 @@ export default function PostsIndex({ loaderData }: Route.ComponentProps) {
               <div className="text-center">
                 <a
                   href={`/posts?cursor=${nextCursor}`}
-                  className="inline-block px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
+                  className="inline-block px-6 py-2 btn-secondary rounded-md"
                 >
                   Load More
                 </a>

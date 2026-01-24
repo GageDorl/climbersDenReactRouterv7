@@ -35,7 +35,7 @@ export function MediaPreview({ urls, onRemove, editable = false }: MediaPreviewP
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-2 right-2 btn-destructive rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label="Remove media"
               >
                 ×

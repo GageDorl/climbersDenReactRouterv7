@@ -77,7 +77,7 @@ export const CommentInput = forwardRef<HTMLTextAreaElement, CommentInputProps>(
       <textarea
         ref={textareaRef}
         placeholder={placeholder}
-        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+        className="flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent text-primary"
         rows={2}
         disabled={isSubmitting}
         onKeyDown={handleKeyDown}

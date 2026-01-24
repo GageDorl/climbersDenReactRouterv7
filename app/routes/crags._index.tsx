@@ -120,10 +120,7 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
     <PageWrapper maxWidth="4xl">
       {isLoggedIn && (
         <div className="mb-4 flex justify-end">
-          <Link
-            to="/crags/favorites"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
+          <Link to="/crags/favorites" className="text-sm link-primary hover:underline">
             View my favorites →
           </Link>
         </div>
@@ -140,17 +137,17 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
               name="q"
               defaultValue={query}
               placeholder="Search by name (e.g., Smith Rock)"
-              className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+              className="flex-1 rounded-md border-default bg-surface px-3 py-2 text-sm text-primary"
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-70"
+              className="px-4 py-2 rounded-md btn-primary text-sm font-medium disabled:opacity-70"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Searching…' : 'Search'}
             </button>
           </Form>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-xs text-muted mt-2">
             Data provided by the public OpenBeta GraphQL API (no API key required).
           </p>
         </CardContent>
@@ -162,9 +159,7 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'list'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600'
+              viewMode === 'list' ? 'btn-primary' : 'bg-surface text-primary border-default hover:opacity-90'
             }`}
           >
             List View
@@ -172,9 +167,7 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
           <button
             onClick={() => setViewMode('map')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-              viewMode === 'map'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600'
+              viewMode === 'map' ? 'btn-primary' : 'bg-surface text-primary border-default hover:opacity-90'
             }`}
           >
             <MapPin className="h-4 w-4" />
@@ -185,7 +178,7 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
 
       {query && results.length === 0 && (
         <Card>
-          <CardContent className="py-10 text-center text-gray-600 dark:text-gray-400">
+          <CardContent className="py-10 text-center text-muted">
             No crags found matching "{query}".
           </CardContent>
         </Card>
@@ -195,8 +188,8 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
       {viewMode === 'map' && (results.length > 0 || userLocation) && (
         <>
           {results.length === 0 && (
-            <Card className="mb-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-              <CardContent className="py-4 text-center text-sm text-blue-900 dark:text-blue-200">
+            <Card className="mb-4 bg-secondary border-default">
+              <CardContent className="py-4 text-center text-sm text-primary">
                 <MapPin className="h-5 w-5 inline mr-2" />
                 Showing your location. Search for a crag name (e.g., "Smith Rock", "Red Rock") to see results on the map.
               </CardContent>
@@ -205,9 +198,9 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
           <Card className="mb-6">
             <CardContent className="p-0 relative">
               {loadingMapCrags && (
-                <div className="absolute top-2 right-2 z-10 bg-white dark:bg-gray-800 rounded-lg p-2 shadow-lg flex items-center gap-2">
-                  <Loader className="h-4 w-4 animate-spin text-blue-500" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Loading crags...</span>
+                <div className="absolute top-2 right-2 z-10 bg-surface rounded-lg p-2 shadow-lg flex items-center gap-2">
+                  <Loader className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted">Loading crags...</span>
                 </div>
               )}
               <CragMap
@@ -243,17 +236,11 @@ export default function CragBrowser({ loaderData }: Route.ComponentProps) {
       {viewMode === 'list' && results.length === 0 && !query && (
         <Card>
           <CardContent className="py-10 text-center">
-            <MapPin className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Search for a Crag
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Enter a crag name to find climbing areas
-            </p>
+            <MapPin className="h-12 w-12 text-muted mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-primary mb-2">Search for a Crag</h3>
+            <p className="text-muted mb-4">Enter a crag name to find climbing areas</p>
             {userLocation && (
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                💡 Tip: Try switching to Map View to see nearby areas
-              </p>
+              <p className="text-sm link-primary">💡 Tip: Try switching to Map View to see nearby areas</p>
             )}
           </CardContent>
         </Card>

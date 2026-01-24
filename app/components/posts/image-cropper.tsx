@@ -145,8 +145,8 @@ export function ImageCropper({
                   onClick={() => setAspectRatio(option.value)}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     aspectRatio === option.value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200'
+                      ? 'btn-primary'
+                      : 'bg-secondary text-primary hover:bg-surface'
                   }`}
                 >
                   {option.label}
@@ -156,7 +156,7 @@ export function ImageCropper({
           </div>
 
           {/* Cropper */}
-          <div className="relative w-full h-80 bg-black rounded-md overflow-hidden">
+          <div className="relative w-full h-80 rounded-md overflow-hidden" style={{backgroundColor: 'var(--text-primary)'}}>
             {(() => {
               // Calculate rendered image dimensions (image scaled to fit 320px height)
               const renderedHeight = 320;
@@ -194,9 +194,10 @@ export function ImageCropper({
               step="0.1"
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:bg-gray-700 mt-2"
+              className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer mt-2"
+              style={{accentColor: 'var(--accent-color)'}}
             />
-            <div className="text-sm text-gray-500 mt-1">
+            <div className="text-sm text-muted mt-1">
               {(zoom * 100).toFixed(0)}%
             </div>
           </div>
@@ -208,7 +209,7 @@ export function ImageCropper({
             const renderedWidth = (imageWidth / imageHeight) * renderedHeight;
             
             return (
-              <div className="space-y-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <div className="space-y-4 p-3 bg-secondary rounded-lg">
                 <div>
                   <Label>Width: {Math.round(cropWidth)}px</Label>
                   <input
@@ -223,7 +224,8 @@ export function ImageCropper({
                       setCropWidth(newWidth);
                       console.log('Crop Width:', newWidth, 'px, Height:', cropHeight, 'px');
                     }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:bg-gray-700 mt-2"
+                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer mt-2"
+                    style={{accentColor: 'var(--accent-color)'}}
                   />
                 </div>
                 <div>
@@ -240,10 +242,11 @@ export function ImageCropper({
                       setCropHeight(newHeight);
                       console.log('Crop Width:', cropWidth, 'px, Height:', newHeight, 'px');
                     }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:bg-gray-700 mt-2"
+                    className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer mt-2"
+                    style={{accentColor: 'var(--accent-color)'}}
                   />
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-muted">
                   Adjust width or height independently
                 </p>
               </div>
@@ -251,7 +254,7 @@ export function ImageCropper({
           })()}
 
           {/* Info */}
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             Use the slider to zoom in and out, then drag to reposition the image.
           </p>
         </div>
@@ -269,7 +272,7 @@ export function ImageCropper({
             type="button"
             onClick={handleSave}
             disabled={isProcessing}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="btn-primary"
           >
             {isProcessing ? 'Processing...' : 'Save Crop'}
           </Button>

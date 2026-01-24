@@ -98,19 +98,19 @@ export default function FollowingRoute({ loaderData }: Route.ComponentProps) {
   return (
     <PageWrapper maxWidth="xl">
         <div className="flex items-center gap-2">
-          <Link to={`/users/${user.displayName}`} className="text-blue-600 hover:underline dark:text-blue-400">
+          <Link to={`/users/${user.displayName}`} className="link-primary">
             ← {user.displayName}
           </Link>
-          <span className="text-gray-600 dark:text-gray-400">/ Following</span>
+          <span className="text-secondary">/ Following</span>
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-primary">
             Following ({following.length})
           </h1>
 
           {following.length === 0 ? (
-            <Card className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <Card className="p-8 text-center text-muted">
               Not following anyone yet
             </Card>
           ) : (
@@ -130,25 +130,25 @@ export default function FollowingRoute({ loaderData }: Route.ComponentProps) {
                           className="w-14 h-14 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-lg font-semibold shrink-0">
+                        <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-secondary text-lg font-semibold shrink-0">
                           {followedUser.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
 
                       {/* User Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                        <h3 className="text-lg font-semibold text-primary truncate">
                           {followedUser.displayName}
                         </h3>
                         {followedUser.locationCity && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">📍 {followedUser.locationCity}</p>
+                          <p className="text-sm text-secondary">📍 {followedUser.locationCity}</p>
                         )}
                         {followedUser.bio && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 line-clamp-1">
+                          <p className="text-sm text-secondary mt-1 line-clamp-1">
                             {followedUser.bio}
                           </p>
                         )}
-                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-2 mt-2 text-sm text-muted">
                           <span>{followedUser.followerCount || 0} followers</span>
                         </div>
                       </div>

@@ -86,14 +86,14 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
                     username={user.displayName}
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-blue-500 dark:bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold" style={{backgroundColor: 'var(--primary-color)'}}>
                     {user.displayName[0].toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <CardTitle className="text-2xl text-black dark:text-white">{user.displayName}</CardTitle>
+                  <CardTitle className="text-2xl text-primary">{user.displayName}</CardTitle>
                   {user.locationCity && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">📍 {user.locationCity}</p>
+                    <p className="text-sm text-secondary mt-1">📍 {user.locationCity}</p>
                   )}
                 </div>
               </div>
@@ -114,40 +114,40 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
           <CardContent className="space-y-6">
             {user.bio && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">About</h3>
-                <p className="text-gray-600 dark:text-gray-300">{user.bio}</p>
+                <h3 className="text-sm font-semibold text-primary mb-2">About</h3>
+                <p className="text-secondary">{user.bio}</p>
               </div>
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Link to={`/posts/user/${user.id}`} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{user._count.posts}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Posts</p>
+              <Link to={`/posts/user/${user.id}`} className="text-center p-4 bg-surface rounded-lg hover:bg-secondary transition-colors">
+                <p className="text-2xl font-bold" style={{color: 'var(--primary-color)'}}>{user._count.posts}</p>
+                <p className="text-sm text-secondary">Posts</p>
               </Link>
-              <Link to={`/users/${user.id}/followers`} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{followerCount}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Followers</p>
+              <Link to={`/users/${user.id}/followers`} className="text-center p-4 bg-surface rounded-lg hover:bg-secondary transition-colors">
+                <p className="text-2xl font-bold" style={{color: 'var(--primary-color)'}}>{followerCount}</p>
+                <p className="text-sm text-secondary">Followers</p>
               </Link>
-              <Link to={`/users/${user.id}/following`} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{followingCount}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Following</p>
+              <Link to={`/users/${user.id}/following`} className="text-center p-4 bg-surface rounded-lg hover:bg-secondary transition-colors">
+                <p className="text-2xl font-bold" style={{color: 'var(--primary-color)'}}>{followingCount}</p>
+                <p className="text-sm text-secondary">Following</p>
               </Link>
-              <Link to={`/ticks/user/${user.id}`} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{user._count.ticks}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Ticks</p>
+              <Link to={`/ticks/user/${user.id}`} className="text-center p-4 bg-surface rounded-lg hover:bg-secondary transition-colors">
+                <p className="text-2xl font-bold" style={{color: 'var(--primary-color)'}}>{user._count.ticks}</p>
+                <p className="text-sm text-secondary">Ticks</p>
               </Link>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Climbing Info</h3>
+              <h3 className="text-sm font-semibold text-primary mb-2">Climbing Info</h3>
               <div className="space-y-2">
                 <div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Styles:</span>
+                  <span className="text-sm text-secondary">Styles:</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {user.climbingStyles.map((style: string) => (
                       <span
                         key={style}
-                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-sm rounded-full capitalize"
+                        className="px-3 py-1 badge-accent text-sm rounded-full capitalize"
                       >
                         {style}
                       </span>
@@ -155,15 +155,15 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
                   </div>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Experience Level:</span>
-                  <span className="ml-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 text-sm rounded-full capitalize">
+                  <span className="text-sm text-secondary">Experience Level:</span>
+                  <span className="ml-2 px-3 py-1 badge-success text-sm rounded-full capitalize">
                     {user.experienceLevel}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="text-xs text-gray-500 dark:text-gray-400 pt-4 border-t dark:border-gray-700">
+            <div className="text-xs text-muted pt-4 border-t border-default">
               Member since {(() => {
                 const date = new Date(user.createdAt);
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

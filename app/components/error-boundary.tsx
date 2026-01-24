@@ -21,7 +21,7 @@ export function ErrorBoundary() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error.data && (
-              <p className="text-sm text-gray-600">{error.data}</p>
+              <p className="text-sm text-secondary">{error.data}</p>
             )}
             <div className="flex gap-2">
               <Button
@@ -46,17 +46,17 @@ export function ErrorBoundary() {
 
   if (error instanceof Error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-surface px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-red-600">Oops! Something went wrong</CardTitle>
+            <CardTitle className="text-destructive">Oops! Something went wrong</CardTitle>
             <CardDescription>
               An unexpected error occurred. Our team has been notified.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm font-mono text-red-800">{error.message}</p>
+            <div className="rounded-md alert-destructive p-4">
+              <p className="text-sm font-mono">{error.message}</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -80,10 +80,10 @@ export function ErrorBoundary() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-red-600">Unknown Error</CardTitle>
+          <CardTitle className="text-destructive">Unknown Error</CardTitle>
           <CardDescription>
             An unexpected error occurred. Please try again later.
           </CardDescription>

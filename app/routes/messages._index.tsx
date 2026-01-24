@@ -78,12 +78,12 @@ export default function MessagesIndex() {
     <PageWrapper maxWidth="4xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-primary">
             Messages
           </h1>
           <Link
             to="/messages/new"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="rounded-lg btn-primary px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2"
           >
             New Message
           </Link>
@@ -91,9 +91,9 @@ export default function MessagesIndex() {
 
         {/* Conversations List */}
         {conversations.length === 0 ? (
-          <div className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
+          <div className="rounded-lg bg-surface p-8 text-center shadow">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-muted"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -106,15 +106,15 @@ export default function MessagesIndex() {
                 d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+            <h3 className="mt-4 text-lg font-medium text-primary">
               No messages yet
             </h3>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-sm text-secondary">
               Start a conversation to connect with other climbers
             </p>
             <Link
               to="/messages/new"
-              className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="mt-4 inline-block rounded-lg btn-primary px-4 py-2 text-sm font-medium"
             >
               Send a message
             </Link>
@@ -131,7 +131,7 @@ export default function MessagesIndex() {
                 <Link
                   key={conversation.id}
                   to={`/messages/${conversation.id}`}
-                  className="block rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md dark:bg-gray-800"
+                  className="block rounded-lg bg-surface p-4 shadow transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-start space-x-4">
                     {/* Avatar */}
@@ -143,7 +143,7 @@ export default function MessagesIndex() {
                           className="h-12 w-12 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full text-white" style={{backgroundColor: 'var(--primary-color)'}}>
                           {conversation.otherParticipant.displayName[0].toUpperCase()}
                         </div>
                       )}
@@ -152,11 +152,11 @@ export default function MessagesIndex() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <p className="text-sm font-semibold text-primary">
                           {conversation.otherParticipant.displayName}
                         </p>
                         {lastMessage && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-muted">
                             {(() => {
                               const date = new Date(lastMessage.sentAt);
                               const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -170,7 +170,7 @@ export default function MessagesIndex() {
                       </div>
 
                       {lastMessage && (
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 truncate">
+                        <p className="mt-1 text-sm text-secondary truncate">
                           {isFromCurrentUser && "You: "}
                           {lastMessage.textContent || (
                             <span className="italic">Sent media</span>
@@ -182,7 +182,7 @@ export default function MessagesIndex() {
                     {/* Unread Badge */}
                     {conversation.unreadCount > 0 && (
                       <div className="shrink-0">
-                        <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-1 text-xs font-bold text-white">
+                        <span className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold text-white" style={{backgroundColor: 'var(--primary-color)'}}>
                           {conversation.unreadCount}
                         </span>
                       </div>

@@ -113,10 +113,10 @@ export default function UserPostsPage({ loaderData, params }: { loaderData: Awai
   return (
     <PageWrapper>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{targetUsername}'s Posts</h1>
+        <h1 className="text-3xl font-bold text-primary mb-6">{targetUsername}'s Posts</h1>
         
         {posts.length === 0 ? (
-          <p className="text-center text-gray-500">No posts yet.</p>
+          <p className="text-center text-muted">No posts yet.</p>
         ) : (
           <>
             <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 lg:gap-4">
@@ -136,7 +136,7 @@ export default function UserPostsPage({ loaderData, params }: { loaderData: Awai
               <div className="mt-6 text-center">
                 <a
                   href={`/posts/user/${params.userId}?cursor=${nextCursor}`}
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="link-primary"
                 >
                   Load more posts
                 </a>

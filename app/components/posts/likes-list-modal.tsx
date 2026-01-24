@@ -52,7 +52,7 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <button className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <button className="text-muted hover:text-accent transition-colors">
             {likeCount} {likeCount === 1 ? 'like' : 'likes'}
           </button>
         )}
@@ -63,15 +63,15 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
         </DialogHeader>
         <div className="max-h-96 overflow-y-auto">
           {loading && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+            <p className="text-center text-muted py-4">
               Loading...
             </p>
           )}
           {error && (
-            <p className="text-center text-red-500 py-4">{error}</p>
+            <p className="text-center text-destructive py-4">{error}</p>
           )}
           {!loading && !error && users.length === 0 && (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+            <p className="text-center text-muted py-4">
               No likes yet
             </p>
           )}
@@ -81,7 +81,7 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
                 <a
                   key={user.id}
                   href={`/users/${user.displayName}`}
-                  className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary transition-colors"
                 >
                   {user.profilePhotoUrl ? (
                     <img
@@ -90,11 +90,11 @@ export function LikesListModal({ postId, likeCount, trigger }: LikesListModalPro
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-surface font-bold">
                       {user.displayName[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="font-semibold dark:text-white">
+                  <span className="font-semibold text-primary">
                     {user.displayName}
                   </span>
                 </a>

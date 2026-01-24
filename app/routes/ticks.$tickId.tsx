@@ -46,8 +46,8 @@ export default function TickDetails() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{tick.route.name}</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold text-primary">{tick.route.name}</h1>
+            <p className="text-secondary">
               {tick.route.crag.name} • {tick.route.type} • {tick.route.grade}
             </p>
           </div>
@@ -64,8 +64,8 @@ export default function TickDetails() {
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Climbed On</p>
-              <p className="text-lg text-gray-900 dark:text-white">{(() => {
+              <p className="text-sm font-medium text-secondary">Climbed On</p>
+              <p className="text-lg text-primary">{(() => {
                 const date = new Date(tick.date);
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const month = months[date.getMonth()];
@@ -75,12 +75,12 @@ export default function TickDetails() {
               })()}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Send Style</p>
-              <p className="text-lg text-gray-900 dark:text-white capitalize">{tick.sendStyle}</p>
+              <p className="text-sm font-medium text-secondary">Send Style</p>
+              <p className="text-lg text-primary capitalize">{tick.sendStyle}</p>
             </div>
             {tick.attempts && (
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Attempts</p>
+                <p className="text-sm font-medium text-secondary">Attempts</p>
                 <p className="text-lg text-gray-900 dark:text-white">{tick.attempts}</p>
               </div>
             )}

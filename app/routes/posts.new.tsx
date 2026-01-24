@@ -80,12 +80,12 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function NewPost() {
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
+    <div className="min-h-screen py-8" style={{background: 'linear-gradient(to bottom, var(--surface), var(--background))'}}>
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-4">
           <a
             href="/posts"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 text-sm font-medium"
+            className="link-primary text-sm font-medium"
           >
             ← Back to Feed
           </a>

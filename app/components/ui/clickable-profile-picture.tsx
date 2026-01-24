@@ -34,7 +34,7 @@ export function ClickableProfilePicture({
       <img
         src={src}
         alt={alt}
-        className={`${sizeClasses[size]} rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ${className}`}
+        className={`${sizeClasses[size]} rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity border-default bg-surface ${className}`}
         onClick={handleClick}
       />
       

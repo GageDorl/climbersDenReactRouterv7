@@ -103,14 +103,14 @@ export default function TicksIndex() {
   return (
     <PageWrapper maxWidth="4xl">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Tick List</h1>
+        <h1 className="text-3xl font-bold text-primary">My Tick List</h1>
 
         <TickFilters crags={crags} onFilterChange={handleFilterChange} initialFilters={filters} />
 
         <div className="space-y-3">
           {ticks.length === 0 ? (
-            <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-8 text-center">
-              <p className="text-gray-600 dark:text-gray-400">No ticks yet. Start logging your climbs!</p>
+            <div className="rounded-lg bg-surface p-8 text-center">
+              <p className="text-muted">No ticks yet. Start logging your climbs!</p>
             </div>
           ) : (
             ticks.map((tick) => <TickList key={tick.id} tick={tick} />)

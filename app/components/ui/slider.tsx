@@ -28,7 +28,8 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         step={step}
         value={value[0]}
         onChange={handleChange}
-        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:bg-gray-700 ${className}`}
+        className={`w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer ${className}`}
+        style={{accentColor: 'var(--accent-color)'}}
         {...props}
       />
     );

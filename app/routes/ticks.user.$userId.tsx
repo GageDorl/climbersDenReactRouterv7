@@ -135,7 +135,7 @@ export default function UserTicksPage() {
       <Card>
         <CardContent className="pt-6">
           {ticks.length === 0 ? (
-            <p className="text-center text-gray-500">No ticks yet.</p>
+            <p className="text-center text-muted">No ticks yet.</p>
           ) : (
             <div className="space-y-3">
               {ticks.map((tick: any) => <TickList key={tick.id} tick={tick} />)}

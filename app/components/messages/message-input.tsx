@@ -186,7 +186,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
                 <button
                   type="button"
                   onClick={() => removeFile(index)}
-                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700"
+                  className="absolute -right-2 -top-2 btn-destructive flex h-6 w-6 items-center justify-center rounded-full hover:opacity-80"
                 >
                   ×
                 </button>
@@ -213,7 +213,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex-shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          className="flex-shrink-0 rounded-lg p-2 text-secondary hover:bg-surface hover:text-primary"
           aria-label="Attach media"
         >
           <svg
@@ -240,7 +240,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             rows={1}
-            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="w-full resize-none rounded-lg border-default px-4 py-2 text-sm focus:outline-none bg-surface text-primary"
             required={selectedFiles.length === 0}
           />
 
@@ -248,7 +248,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
         <button
           type="submit"
           disabled={!textContent.trim() && selectedFiles.length === 0}
-          className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send
         </button>

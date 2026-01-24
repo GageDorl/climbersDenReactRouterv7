@@ -11,7 +11,7 @@ export function Spinner({ className = '', size = 'default' }: { className?: stri
   return (
     <div className={`${sizeClasses[size]} ${className}`}>
       <svg
-        className="animate-spin text-blue-600"
+        className="animate-spin text-accent"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -40,7 +40,7 @@ export function PageLoading() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <Spinner size="lg" />
-        <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <p className="mt-4 text-sm text-muted">Loading...</p>
       </div>
     </div>
   );
@@ -53,7 +53,7 @@ export function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-gray-200 ${className}`}
+      className={`animate-pulse rounded-md bg-secondary ${className}`}
       {...props}
     />
   );
@@ -61,7 +61,7 @@ export function Skeleton({
 
 export function SkeletonCard() {
   return (
-    <div className="space-y-3 rounded-lg border border-gray-200 p-4">
+    <div className="space-y-3 rounded-lg border border-default p-4">
       <div className="flex items-center space-x-4">
         <Skeleton className="h-12 w-12 rounded-full" />
         <div className="space-y-2 flex-1">

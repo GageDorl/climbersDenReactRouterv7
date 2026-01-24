@@ -90,13 +90,13 @@ export default function ForgotPassword({ actionData }: Route.ComponentProps) {
         <Form method="post">
           <CardContent className="space-y-4">
             {actionData?.success && (
-              <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-3 text-sm">
+              <div className="alert-success rounded-md p-3 text-sm">
                 {actionData.message}
               </div>
             )}
 
             {actionData?.error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+              <div className="alert-destructive rounded-md p-3 text-sm">
                 {actionData.error}
               </div>
             )}
@@ -123,7 +123,7 @@ export default function ForgotPassword({ actionData }: Route.ComponentProps) {
             </Button>
 
             <div className="text-center text-sm">
-              <a href="/auth/login" className="text-blue-600 hover:underline">
+              <a href="/auth/login" className="link-primary">
                 Back to login
               </a>
             </div>

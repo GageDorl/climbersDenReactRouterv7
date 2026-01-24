@@ -88,7 +88,7 @@ export function VideoModal({
                 variant="secondary"
                 size="sm"
                 onClick={handleDownload}
-                className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+                className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
               >
                 <Download className="w-4 h-4" />
               </Button>
@@ -96,7 +96,7 @@ export function VideoModal({
                 variant="secondary"
                 size="sm"
                 onClick={handleOpenInNewTab}
-                className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+                className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
@@ -106,7 +106,7 @@ export function VideoModal({
             variant="secondary"
             size="sm"
             onClick={handleMuteToggle}
-            className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+            className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </Button>
@@ -114,7 +114,7 @@ export function VideoModal({
             variant="secondary"
             size="sm"
             onClick={() => handleOpenChange(false)}
-            className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+            className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
           >
             <X className="w-4 h-4" />
           </Button>

@@ -89,7 +89,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create your account</CardTitle>
@@ -100,7 +100,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
         <Form method="post">
           <CardContent className="space-y-4">
             {actionData?.error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+              <div className="alert-destructive rounded-md p-3 text-sm">
                 {actionData.error}
               </div>
             )}
@@ -130,7 +130,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
                 disabled={isSubmitting}
                 maxLength={30}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 This is how other climbers will see you
               </p>
             </div>
@@ -169,9 +169,9 @@ export default function Register({ actionData }: Route.ComponentProps) {
               {isSubmitting ? "Creating account..." : "Create account"}
             </Button>
 
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-sm text-center text-muted">
               Already have an account?{" "}
-              <a href="/auth/login" className="text-blue-600 hover:underline">
+              <a href="/auth/login" className="link-primary">
                 Sign in
               </a>
             </p>

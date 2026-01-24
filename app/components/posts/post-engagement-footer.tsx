@@ -22,13 +22,13 @@ export function PostEngagementFooter({
   onShareClick,
 }: PostEngagementFooterProps) {
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-3">
+    <div className="border-t border-default pt-2 mt-3">
       <div className="flex justify-between">
         {/* Like Button */}
         <button
           onClick={onLikeClick}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-            isLiked ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors ${
+            isLiked ? 'text-destructive' : 'text-secondary'
           }`}
         >
           <Heart
@@ -40,7 +40,7 @@ export function PostEngagementFooter({
         {/* Comment Button */}
         <button
           onClick={onCommentClick}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors text-secondary"
         >
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm font-medium">{commentCount}</span>
@@ -49,7 +49,7 @@ export function PostEngagementFooter({
         {/* Share Button */}
         <button
           onClick={onShareClick}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors text-secondary"
         >
           <Share2 className="w-5 h-5" />
           <span className="text-sm font-medium">{shareCount}</span>

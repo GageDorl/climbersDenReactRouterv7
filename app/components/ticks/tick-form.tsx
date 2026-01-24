@@ -24,7 +24,7 @@ export default function TickForm({ routes, initialTick, isEditing }: TickFormPro
   return (
     <fetcher.Form method={isEditing ? 'PATCH' : 'POST'} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Route</label>
+        <label className="block text-sm font-medium text-secondary">Route</label>
         <select
           name="routeId"
           required
@@ -41,23 +41,23 @@ export default function TickForm({ routes, initialTick, isEditing }: TickFormPro
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Date Climbed</label>
+        <label className="block text-sm font-medium text-secondary">Date Climbed</label>
         <input
           type="date"
           name="date"
           required
           defaultValue={initialTick?.date}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border border-default bg-surface px-3 py-2 text-primary"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Send Style</label>
+        <label className="block text-sm font-medium text-secondary">Send Style</label>
         <select
           name="sendStyle"
           required
           defaultValue={initialTick?.sendStyle || ''}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border border-default bg-surface px-3 py-2 text-primary"
         >
           <option value="">Select send style...</option>
           {sendStyles.map((style) => (
@@ -69,23 +69,23 @@ export default function TickForm({ routes, initialTick, isEditing }: TickFormPro
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Attempts (optional)</label>
+        <label className="block text-sm font-medium text-secondary">Attempts (optional)</label>
         <input
           type="number"
           name="attempts"
           min="1"
           defaultValue={initialTick?.attempts || ''}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border border-default bg-surface px-3 py-2 text-primary"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Personal Notes</label>
+        <label className="block text-sm font-medium text-secondary">Personal Notes</label>
         <textarea
           name="personalNotes"
           maxLength={1000}
           defaultValue={initialTick?.personalNotes || ''}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          className="mt-1 block w-full rounded-md border border-default bg-surface px-3 py-2 text-primary"
           rows={4}
           placeholder="What do you remember about this climb?"
         />

@@ -184,7 +184,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
       <div className="space-y-8 w-full">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Discover Climbers</h1>
+          <h1 className="text-3xl font-bold text-primary">Discover Climbers</h1>
           <Link to="/users/search">
             <Button variant="outline">🔍 Advanced Search</Button>
           </Link>
@@ -208,17 +208,17 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
         {/* Suggested Users Section */}
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-semibold text-primary">
               Suggested for You
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-secondary">
               Based on your climbing style and location
             </p>
           </div>
 
           {suggestedUsers.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-muted mb-4">
                 No suggestions available right now
               </p>
               <Link to="/users/search">
@@ -239,7 +239,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
                           className="w-20 h-20 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-2xl font-semibold">
+                        <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-secondary text-2xl font-semibold">
                           {user.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -248,12 +248,12 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
                     {/* User Info */}
                     <div className="w-full">
                       <Link to={`/users/${user.displayName}`}>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 truncate">
+                        <h3 className="text-lg font-semibold text-primary hover:opacity-80 truncate">
                           {user.displayName}
                         </h3>
                       </Link>
                       {user.locationCity && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-secondary mt-1">
                           📍 {user.locationCity}
                         </p>
                       )}
@@ -261,13 +261,13 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
 
                     {/* Bio */}
                     {user.bio && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 w-full">
+                      <p className="text-sm text-secondary line-clamp-2 w-full">
                         {user.bio}
                       </p>
                     )}
 
                     {/* Stats */}
-                    <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-3 text-sm text-secondary">
                       <span>{user.followerCount || 0} followers</span>
                       <span>•</span>
                       <span className="capitalize">{user.experienceLevel}</span>
@@ -279,7 +279,7 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
                         {user.climbingStyles.slice(0, 3).map((style: string) => (
                           <span
                             key={style}
-                            className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded capitalize"
+                            className="text-xs badge-accent px-2 py-1 rounded capitalize"
                           >
                             {style}
                           </span>
@@ -303,8 +303,8 @@ export default function DiscoverRoute({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* Quick Links */}
-        <Card className="p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+        <Card className="p-6 bg-surface border-default">
+          <h3 className="text-lg font-semibold text-primary mb-3">
             Looking for someone specific?
           </h3>
           <div className="flex flex-col sm:flex-row gap-3">

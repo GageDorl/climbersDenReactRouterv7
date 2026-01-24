@@ -394,7 +394,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8">
+    <div className="min-h-screen py-8" style={{background: 'linear-gradient(to bottom, var(--surface), var(--background))'}}>
       <div className="max-w-2xl mx-auto px-4">
         <Card>
           <CardHeader>
@@ -406,7 +406,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
           <Form method="post">
             <CardContent className="space-y-6">
               {actionData?.error && (
-                <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+                <div className="alert-destructive rounded-md p-3 text-sm">
                   {actionData.error}
                 </div>
               )}
@@ -429,7 +429,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <textarea
                   id="bio"
                   name="bio"
-                  className="w-full min-h-24 px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full min-h-24 px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary" style={{focusRingColor: 'var(--primary-color)'}}
                   maxLength={500}
                   defaultValue={actionData?.fields?.bio as string || user.bio || ''}
                   placeholder="Tell us about yourself..."
@@ -460,10 +460,10 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                   disabled={isLoadingConversion || isUploadingImage}
                 />
                 {isLoadingConversion && (
-                  <p className="text-sm text-blue-600">Converting HEIC image...</p>
+                  <p className="text-sm" style={{color: 'var(--primary-color)'}}>Converting HEIC image...</p>
                 )}
                 {isUploadingImage && (
-                  <p className="text-sm text-blue-600">Uploading image...</p>
+                  <p className="text-sm" style={{color: 'var(--primary-color)'}}>Uploading image...</p>
                 )}
                 {profilePhotoUrl && (
                   <input type="hidden" name="profilePhotoUrl" value={profilePhotoUrl} />
@@ -480,7 +480,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                         id={`style-${style}`}
                         name="climbingStyles"
                         value={style}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 border-default rounded focus:ring-2" style={{color: 'var(--primary-color)'}}
                         defaultChecked={
                           actionData?.fields?.climbingStyles?.includes(style as any) ||
                           user.climbingStyles.includes(style)
@@ -500,7 +500,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                   id="experienceLevel"
                   name="experienceLevel"
                   required
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm rounded-md border-default focus:outline-none focus:ring-2 bg-surface text-primary" style={{focusRingColor: 'var(--primary-color)'}}
                   defaultValue={actionData?.fields?.experienceLevel as string || user.experienceLevel}
                 >
                   <option value="">Select your experience level</option>
@@ -546,8 +546,8 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <DialogTitle>Converting Image</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col items-center justify-center py-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-sm text-gray-600 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 mb-4" style={{borderColor: 'var(--primary-color)'}}></div>
+                <p className="text-sm text-secondary text-center">
                   Converting HEIC image to JPEG format...
                 </p>
               </div>
@@ -561,8 +561,8 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <DialogTitle>Uploading Image</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col items-center justify-center py-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-sm text-gray-600 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 mb-4" style={{borderColor: 'var(--primary-color)'}}></div>
+                <p className="text-sm text-secondary text-center">
                   Uploading your profile picture...
                 </p>
               </div>

@@ -21,7 +21,7 @@ export function RouteItem({ climb, cragId }: { climb: OpenBetaClimb; cragId: str
   const openBetaUrl = `https://openbeta.io/climb/${climb.uuid}`;
 
   return (
-    <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+    <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-secondary transition-colors">
       <a
         href={openBetaUrl}
         target="_blank"
@@ -29,16 +29,16 @@ export function RouteItem({ climb, cragId }: { climb: OpenBetaClimb; cragId: str
         className="flex-1 hover:underline"
       >
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-gray-900 dark:text-gray-100">{climb.name.substring(climb.name.length-5, climb.name.length)==", The" ? climb.name.substring(0, climb.name.length-5) + ", The" : climb.name}</p>
-          <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <p className="font-semibold text-primary">{climb.name.substring(climb.name.length-5, climb.name.length)==", The" ? climb.name.substring(0, climb.name.length-5) + ", The" : climb.name}</p>
+          <svg className="w-3 h-3 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{typeLabel(climb.type)}</p>
+        <p className="text-sm text-secondary">{typeLabel(climb.type)}</p>
       </a>
       
       <div className="flex items-center gap-3">
-        <div className="text-sm text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+        <div className="text-sm text-primary font-medium whitespace-nowrap">
           {climb.yds || climb.grades?.yds || climb.grades?.french || '—'}
         </div>
         <Link 

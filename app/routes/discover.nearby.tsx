@@ -60,42 +60,42 @@ export default function DiscoverNearby({ loaderData }: Route.ComponentProps) {
   const { nearbyUsers, hasLocationPermission, totalFound } = loaderData;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8">
+    <div className="min-h-screen py-8" style={{background: 'linear-gradient(to bottom, var(--surface), var(--background))'}}>
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-primary mb-2">
             Nearby Climbers
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-secondary">
             Connect with climbers near you
           </p>
         </div>
 
         {!hasLocationPermission ? (
           // Location not enabled message
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-6 text-center">
-            <p className="text-sm text-blue-900 dark:text-blue-200 mb-4">
+          <div className="rounded-lg p-6 text-center" style={{backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--primary-color) 30%, transparent)'}}>
+            <p className="text-sm mb-4" style={{color: 'var(--primary-color)'}}>
               Enable location sharing in your profile settings to discover nearby climbers.
             </p>
             <a
               href="/users/edit"
-              className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+              className="btn-primary inline-block px-6 py-2 rounded-md text-sm font-medium"
             >
               Enable Location
             </a>
           </div>
         ) : totalFound === 0 ? (
           // No nearby users found
-          <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-surface p-6 text-center">
+            <p className="text-muted">
               No climbers found nearby. Check back soon or expand your search radius!
             </p>
           </div>
         ) : (
           // Display nearby users
           <div>
-            <div className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-              Found <span className="font-semibold text-gray-900 dark:text-white">{totalFound}</span> climbers near you
+            <div className="mb-6 text-sm text-secondary">
+              Found <span className="font-semibold text-primary">{totalFound}</span> climbers near you
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {nearbyUsers.map((user: any) => (

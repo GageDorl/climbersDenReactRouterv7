@@ -36,7 +36,8 @@ export function DoubleTapHeart({ isVisible, x = 0, y = 0 }: DoubleTapHeartProps)
         }}
       >
         <Heart
-          className="w-16 h-16 fill-red-500 text-red-500"
+          className="w-16 h-16 text-destructive"
+          style={{ fill: 'var(--destructive-color)' }}
           strokeWidth={1}
         />
       </div>

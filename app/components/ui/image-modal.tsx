@@ -40,14 +40,14 @@ export function ImageModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none">
         {/* Header with controls */}
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <div className="absolute top-4 right-12 z-10 flex gap-2">
           {showDownload && (
             <>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={handleDownload}
-                className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+                className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
               >
                 <Download className="w-4 h-4" />
               </Button>
@@ -55,20 +55,13 @@ export function ImageModal({
                 variant="secondary"
                 size="sm"
                 onClick={handleOpenInNewTab}
-                className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
+                className="text-surface" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
             </>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onClose}
-            className="bg-black/70 hover:bg-black/90 text-white border-gray-600"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          {/* Dialog already renders a close control; avoid duplicate X by not rendering another close here */}
         </div>
 
         {/* Image container */}

@@ -36,8 +36,8 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
       <div
         className={`max-w-[70%] rounded-lg px-4 py-2 ${
           isCurrentUser
-            ? "bg-blue-600 text-white"
-            : "bg-white text-gray-900 shadow dark:bg-gray-800 dark:text-white"
+            ? "bg-primary text-white shadow"
+            : "bg-secondary text-primary shadow"
         }`}
       >
         {/* Media attachments */}
@@ -81,11 +81,7 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
         )}
 
         {/* Timestamp */}
-        <p
-          className={`mt-1 text-xs ${
-            isCurrentUser ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
-          }`}
-        >
+        <p className={`mt-1 text-xs text-muted ${isCurrentUser ? "text-white/70" : "text-primary/70"}`}>
           {(() => {
             const date = new Date(message.sentAt);
             const now = new Date();

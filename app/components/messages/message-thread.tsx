@@ -69,14 +69,14 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
         {hasMore && (
           <div className="text-center py-4">
             {isLoadingOlder ? (
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-default" style={{borderTopColor: 'var(--primary-color)'}}></div>
                 <span>Loading older messages...</span>
               </div>
             ) : (
               <button
                 onClick={onLoadOlder}
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                className="link-primary text-sm font-medium"
               >
                 Load older messages
               </button>
@@ -87,7 +87,7 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
           <div className="flex h-full items-center justify-center text-center">
             <div>
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-muted"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -99,7 +99,7 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                 />
               </svg>
-              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-4 text-sm text-muted">
                 No messages yet. Start the conversation!
               </p>
             </div>

@@ -5,11 +5,149 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+:root {
+  /* Light theme - Earthy rock climbing tones */
+  --primary-color: #c2703f;        /* Sandstone/rust */
+  --primary-hover: #a35d2f;        /* Deeper rust */
+  --secondary-color: #e8dfd3;      /* Warm sand */
+  --secondary-hover: #d4c5b3;      /* Darker sand */
+  --accent-color: #5a7c5a;         /* Forest green */
+  --destructive-color: #b85c3a;    /* Rust red */
+  --destructive-hover: #9a4a2e;    /* Burnt rust */
+  --success-color: #6b8e5f;        /* Moss green */
+  --success-hover: #577a4d;        /* Deep moss */
+  --muted-color: #8a7d6f;          /* Earth brown */
+  --text-primary: #3a3530;         /* Dark charcoal */
+  --text-secondary: #6f6459;       /* Warm gray */
+  --background: #faf7f2;           /* Cream/off-white */
+  --surface: #f2ebe0;              /* Light tan */
+  --border-color: #d4c5b3;         /* Sand border */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark theme - Earthy night tones */
+    --primary-color: #d4845f;      /* Terracotta */
+    --primary-hover: #c2703f;      /* Rust */
+    --secondary-color: #3d3935;    /* Dark warm gray */
+    --secondary-hover: #504a44;    /* Lighter warm gray */
+    --accent-color: #7a9c7a;       /* Sage green */
+    --destructive-color: #d4734f;  /* Burnt orange */
+    --destructive-hover: #b85c3a;  /* Dark rust */
+    --success-color: #8ba880;      /* Light moss */
+    --success-hover: #6b8e5f;      /* Moss */
+    --muted-color: #a89d8f;        /* Warm taupe */
+    --text-primary: #f2ebe0;       /* Cream */
+    --text-secondary: #b8aca0;     /* Light warm gray */
+    --background: #1a1816;         /* Deep charcoal */
+    --surface: #2a2622;            /* Dark earth */
+    --border-color: #4a4440;       /* Warm dark gray */
+  }
+}
+
 html,
 body {
   @apply bg-white dark:bg-gray-950;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
+  }
+}
+
+/* Utility classes using CSS variables */
+@layer base {
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-primary);
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--secondary-hover);
+  }
+  
+  .btn-destructive {
+    background-color: var(--destructive-color);
+    color: white;
+  }
+  
+  .btn-destructive:hover {
+    background-color: var(--destructive-hover);
+  }
+  
+  .text-primary {
+    color: var(--text-primary);
+  }
+  
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .text-muted {
+    color: var(--muted-color);
+  }
+  
+  .bg-surface {
+    background-color: var(--surface);
+  }
+  
+  .bg-primary {
+    background-color: var(--primary-color);
+  }
+  
+  .bg-secondary {
+    background-color: var(--secondary-color);
+  }
+  
+  .border-default {
+    border-color: var(--border-color);
+  }
+  
+  .link-primary {
+    color: var(--primary-color);
+  }
+  
+  .link-primary:hover {
+    color: var(--primary-hover);
+  }
+  
+  .badge-primary {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .badge-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-primary);
+  }
+  
+  .badge-success {
+    background-color: var(--success-color);
+    color: white;
+  }
+  
+  .badge-accent {
+    background-color: var(--accent-color);
+    color: white;
+  }
+  
+  .alert-success {
+    background-color: var(--success-color);
+    border-color: var(--success-hover);
+    color: white;
+  }
+  
+  .alert-destructive {
+    background-color: var(--destructive-color);
+    border-color: var(--destructive-hover);
+    color: white;
   }
 }

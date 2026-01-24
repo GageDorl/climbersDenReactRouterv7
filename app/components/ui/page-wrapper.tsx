@@ -15,7 +15,7 @@ export function PageWrapper({ children, maxWidth = '2xl' }: PageWrapperProps) {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8 pb-16 sm:pb-8">
+    <div className="min-h-screen bg-surface py-8 pb-16 sm:pb-8">
       <div className={`w-full ${maxWidthClasses[maxWidth]} mx-auto px-4 `}>
         {children}
       </div>

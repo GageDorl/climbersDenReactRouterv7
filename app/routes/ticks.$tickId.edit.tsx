@@ -94,7 +94,7 @@ export default function EditTick() {
   return (
     <PageWrapper maxWidth="2xl">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Tick: {tick.route.name}</h1>
+        <h1 className="text-3xl font-bold text-primary">Edit Tick: {tick.route.name}</h1>
 
         <TickForm
           routes={[tick.route as any]}

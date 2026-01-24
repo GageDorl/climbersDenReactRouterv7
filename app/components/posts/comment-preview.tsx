@@ -29,7 +29,7 @@ export function CommentPreview({
   return (
     <div className="space-y-2">
       {comments.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+        <p className="text-sm text-muted text-center py-2">
           No comments yet. Be the first to comment!
         </p>
       ) : (
@@ -48,7 +48,7 @@ export function CommentPreview({
           {remainingComments > 0 && onViewMore && (
             <button
               onClick={onViewMore}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-sm link-primary"
             >
               View {remainingComments} more {remainingComments === 1 ? 'comment' : 'comments'}
             </button>

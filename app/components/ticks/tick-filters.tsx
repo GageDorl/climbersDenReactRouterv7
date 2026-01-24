@@ -22,10 +22,10 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+    <div className="rounded-lg border-default bg-surface p-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+          <label className="block text-sm font-medium text-secondary">Start Date</label>
           <input
             type="date"
             defaultValue={initialFilters.startDate || ''}
@@ -35,12 +35,12 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
                 startDate: e.target.value || null,
               })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            className="mt-1 block w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+          <label className="block text-sm font-medium text-secondary">End Date</label>
           <input
             type="date"
             defaultValue={initialFilters.endDate || ''}
@@ -50,12 +50,12 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
                 endDate: e.target.value || null,
               })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            className="mt-1 block w-full rounded-md border-default bg-surface px-3 py-2 text-sm text-primary"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Crag</label>
+          <label className="block text-sm font-medium text-secondary">Crag</label>
           <select
             defaultValue={initialFilters.crag || ''}
             onChange={(e) =>
@@ -64,7 +64,7 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
                 crag: e.target.value || null,
               })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            className="mt-1 block w-full rounded-md border-default bg-surface px-3 py-2 text-sm text-primary"
           >
             <option value="">All Crags</option>
             {crags.map((crag) => (
@@ -76,7 +76,7 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Grade</label>
+          <label className="block text-sm font-medium text-secondary">Grade</label>
           <select
             defaultValue={initialFilters.gradeFilter || ''}
             onChange={(e) =>
@@ -85,7 +85,7 @@ export default function TickFilters({ crags, initialFilters, onFilterChange }: T
                 gradeFilter: e.target.value || null,
               })
             }
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
+            className="mt-1 block w-full rounded-md border-default bg-surface px-3 py-2 text-sm text-primary"
           >
             <option value="">All Grades</option>
             <option value="5.5">5.5</option>

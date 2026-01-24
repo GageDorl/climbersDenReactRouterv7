@@ -39,12 +39,12 @@ export default function CragFavoritesRoute({ loaderData }: Route.ComponentProps)
     <PageWrapper maxWidth="4xl">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-primary">
             My Favorite Crags
           </h1>
           <Link
             to="/crags"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-sm link-primary"
           >
             Browse all crags →
           </Link>
@@ -54,15 +54,15 @@ export default function CragFavoritesRoute({ loaderData }: Route.ComponentProps)
           <Card>
             <CardContent className="py-12">
               <div className="text-center space-y-3">
-                <p className="text-lg text-gray-600 dark:text-gray-400">
+                <p className="text-lg text-secondary">
                   You haven't favorited any crags yet
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
+                <p className="text-sm text-muted">
                   Browse crags and click the heart icon to save your favorites
                 </p>
                 <Link
                   to="/crags"
-                  className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="btn-primary inline-block mt-4 px-4 py-2 rounded-md transition-colors"
                 >
                   Browse Crags
                 </Link>

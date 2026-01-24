@@ -74,26 +74,26 @@ export function LocationPermissionModal({
         </DialogHeader>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+          <div className="alert-destructive rounded-md p-3 text-sm">
             {error}
           </div>
         )}
 
-        <div className="space-y-3 text-sm text-gray-600">
+        <div className="space-y-3 text-sm text-secondary">
           <div className="flex items-start space-x-2">
-            <span className="text-green-600">✓</span>
+            <span className="text-success">✓</span>
             <p>Find climbers near you</p>
           </div>
           <div className="flex items-start space-x-2">
-            <span className="text-green-600">✓</span>
+            <span className="text-success">✓</span>
             <p>Discover local crags and routes</p>
           </div>
           <div className="flex items-start space-x-2">
-            <span className="text-green-600">✓</span>
+            <span className="text-success">✓</span>
             <p>Get weather updates for nearby climbing areas</p>
           </div>
           <div className="flex items-start space-x-2">
-            <span className="text-gray-400">🔒</span>
+            <span className="text-muted">🔒</span>
             <p className="text-xs">
               Your exact location is never shared publicly. Only your city is
               visible to others.

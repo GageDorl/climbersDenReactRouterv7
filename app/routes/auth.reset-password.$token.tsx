@@ -95,11 +95,11 @@ export default function ResetPassword({ loaderData, actionData }: Route.Componen
             <CardTitle>Invalid Reset Link</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
               {loaderData.error}
             </div>
             <div className="text-center">
-              <a href="/auth/forgot-password" className="text-blue-600 hover:underline">
+              <a href="/auth/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
                 Request a new reset link
               </a>
             </div>
@@ -121,7 +121,7 @@ export default function ResetPassword({ loaderData, actionData }: Route.Componen
         <Form method="post">
           <CardContent className="space-y-4">
             {actionData?.error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
                 {actionData.error}
               </div>
             )}

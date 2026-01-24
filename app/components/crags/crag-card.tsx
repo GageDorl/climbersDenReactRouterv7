@@ -12,13 +12,13 @@ export function CragCard({ area }: { area: OpenBetaAreaSummary }) {
     <Card className="p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{area.name.substring(area.name.length-5, area.name.length)==", The" ? area.name.substring(0, area.name.length-5) + ", The" : area.name}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{formatCoords(area.latitude, area.longitude)}</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">Total routes: {area.totalClimbs}</p>
+          <h3 className="text-lg font-semibold text-primary">{area.name.substring(area.name.length-5, area.name.length)==", The" ? area.name.substring(0, area.name.length-5) + ", The" : area.name}</h3>
+          <p className="text-sm text-secondary">{formatCoords(area.latitude, area.longitude)}</p>
+          <p className="text-sm text-primary mt-1">Total routes: {area.totalClimbs}</p>
         </div>
         <Link
           to={`/crags/${area.uuid}`}
-          className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+          className="link-primary text-sm font-medium"
         >
           View details
         </Link>

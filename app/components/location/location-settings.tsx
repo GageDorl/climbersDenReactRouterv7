@@ -103,23 +103,23 @@ export function LocationSettings({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Location Display */}
-        <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
+        <div className="rounded-lg bg-secondary p-4">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Current Location:</span>
+              <span className="text-secondary">Current Location:</span>
               <span className="font-medium">
                 {currentCity || 'Not set'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Last Update:</span>
+              <span className="text-secondary">Last Update:</span>
               <span className="font-medium text-xs">
                 {formattedLastUpdate}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Status:</span>
-              <span className={`font-medium text-sm ${isLocationEnabled ? 'text-green-600' : 'text-gray-600'}`}>
+              <span className="text-secondary">Status:</span>
+              <span className={`font-medium text-sm ${isLocationEnabled ? 'text-success' : 'text-muted'}`}>
                 {isLocationEnabled ? '✓ Enabled' : '✗ Disabled'}
               </span>
             </div>
@@ -127,8 +127,8 @@ export function LocationSettings({
         </div>
 
         {/* Privacy Notice */}
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3">
-          <p className="text-xs text-blue-900 dark:text-blue-200">
+        <div className="rounded-lg border border-default p-3" style={{backgroundColor: 'var(--accent-color)', opacity: 0.1}}>
+          <p className="text-xs" style={{color: 'var(--accent-color)'}}>
             <span className="font-semibold">Privacy:</span> Your exact coordinates are never shared. Other users only see your approximate city. You can disable this anytime.
           </p>
         </div>
@@ -173,15 +173,15 @@ export function LocationSettings({
 
         {/* Error Message */}
         {fetcher.data?.error && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
-            <p className="text-xs text-red-900 dark:text-red-200">
+          <div className="rounded-lg alert-destructive p-3">
+            <p className="text-xs text-destructive">
               {fetcher.data.error}
             </p>
           </div>
         )}
 
         {/* Info */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+        <p className="text-xs text-muted italic">
           Note: Location updates work best on mobile devices with GPS enabled.
         </p>
       </CardContent>

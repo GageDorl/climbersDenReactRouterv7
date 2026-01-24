@@ -64,7 +64,7 @@ export function FollowButton({
       disabled={isLoading}
       variant={isFollowing ? 'secondary' : variant}
       size={size}
-      className={isFollowing ? 'border-gray-300' : ''}
+      className={isFollowing ? 'border-default' : ''}
     >
       {isLoading ? (
         <>

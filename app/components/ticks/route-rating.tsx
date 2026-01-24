@@ -39,9 +39,10 @@ export default function RouteRating({ routeId, initialRating = 0 }: RouteRatingP
             <svg
               className={`h-6 w-6 ${
                 star <= (hoveredRating || rating)
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'text-gray-300'
+                  ? 'text-accent'
+                  : 'text-muted'
               }`}
+              style={star <= (hoveredRating || rating) ? {fill: 'var(--accent-color)'} : {}}
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -51,7 +52,7 @@ export default function RouteRating({ routeId, initialRating = 0 }: RouteRatingP
         ))}
       </div>
       {rating > 0 && (
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-primary">
           {rating} out of 5 stars
         </span>
       )}

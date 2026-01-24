@@ -189,18 +189,18 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                 username={post.user.displayName}
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-surface font-bold">
                 {post.user.displayName[0].toUpperCase()}
               </div>
             )}
             <div>
               <a
                 href={`/users/${post.user.displayName}`}
-                className="font-semibold hover:underline dark:text-white"
+                className="font-semibold hover:underline text-primary"
               >
                 {post.user.displayName}
               </a>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted">
                 {(() => {
                   const date = new Date(post.createdAt);
                   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -275,7 +275,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
       />
       <CardContent>
         {post.textContent && (
-          <p className="whitespace-pre-wrap dark:text-gray-100 mb-4">
+          <p className="whitespace-pre-wrap text-primary mb-4">
             {post.textContent}
           </p>
         )}
@@ -295,7 +295,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
 
         {/* Comments Section - Expanded on demand */}
         {showComments && showCommentThread && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-default">
             {/* Comments List */}
             {comments && comments.length > 0 ? (
               <CommentThread
@@ -321,7 +321,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                   </div>
                 )}
                 {commentCount > 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+                  <p className="text-sm text-muted">Loading comments...</p>
                 )}
               </>
             )}
@@ -330,7 +330,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
 
         {/* Comments Preview - Collapsed view */}
         {showComments && !showCommentThread && comments && comments.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-default">
             <h3 className="text-sm font-semibold mb-3">Comments</h3>
             <CommentPreview
               postId={post.id}

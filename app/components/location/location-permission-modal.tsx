@@ -44,7 +44,7 @@ export function LocationPermissionModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-blue-600" />
+            <MapPin className="h-5 w-5 text-accent" />
             Enable Location
           </DialogTitle>
           <DialogDescription>
@@ -53,30 +53,30 @@ export function LocationPermissionModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-2 ml-4">
+          <ul className="text-sm text-secondary space-y-2 ml-4">
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
+              <span className="text-accent mt-1">•</span>
               <span>Discover climbers near you</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
+              <span className="text-accent mt-1">•</span>
               <span>View crags on an interactive map</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
+              <span className="text-accent mt-1">•</span>
               <span>Get personalized route recommendations</span>
             </li>
           </ul>
 
           {/* Privacy Notice */}
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-3 border border-blue-200 dark:border-blue-800">
-            <p className="text-xs text-blue-900 dark:text-blue-200">
+          <div className="rounded-lg p-3 border border-default" style={{backgroundColor: 'var(--accent-color)', opacity: 0.1}}>
+            <p className="text-xs" style={{color: 'var(--accent-color)'}}>
               <span className="font-semibold">Privacy:</span> Your exact location is never shared publicly. Other climbers only see your approximate city. You can disable location sharing anytime in your profile settings.
             </p>
           </div>
 
           {/* Accuracy Note */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+          <p className="text-xs text-muted italic">
             Note: Location updates work best on mobile devices with GPS enabled.
           </p>
 
@@ -86,7 +86,7 @@ export function LocationPermissionModal({
             <Button
               onClick={handleAllow}
               disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full btn-primary"
             >
               {isSubmitting ? 'Enabling...' : 'Allow Location Access'}
             </Button>
@@ -108,14 +108,14 @@ export function LocationPermissionModal({
               onClick={handleDeny}
               disabled={isSubmitting}
               variant="ghost"
-              className="w-full text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className="w-full text-muted"
             >
               Don't Share Location
             </Button>
           </div>
 
           {/* Additional Info */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+          <p className="text-xs text-muted text-center">
             Your browser may also ask for permission. You can change this setting anytime.
           </p>
         </div>

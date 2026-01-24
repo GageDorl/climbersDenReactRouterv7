@@ -104,19 +104,19 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
   const { posts, nextCursor, hasMore } = loaderData;
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-6">Following Feed</h1>
+        <h1 className="text-3xl font-bold text-primary mb-6">Following Feed</h1>
 
         {posts.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-muted">
                 No posts from people you follow yet. Start following climbers to see their posts here!
               </p>
               <a
                 href="/discover"
-                className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="btn-primary inline-block mt-4 px-6 py-2 rounded-md"
               >
                 Discover Climbers
               </a>
@@ -135,7 +135,7 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
                         className="w-10 h-10 rounded-full"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{backgroundColor: 'var(--primary-color)'}}>
                         {post.user.displayName[0].toUpperCase()}
                       </div>
                     )}
@@ -146,7 +146,7 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
                       >
                         {post.user.displayName}
                       </a>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-muted">
                         {(() => {
                           const date = new Date(post.createdAt);
                           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -173,14 +173,14 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-4 pt-4 border-t dark:border-gray-700">
+                  <div className="flex items-center gap-4 pt-4 border-t border-default">
                     <span className="flex items-center gap-2">
                       <span>{post.isLikedByCurrentUser ? '❤️' : '🤍'}</span>
                       <span>{post.likeCount}</span>
                     </span>
                     <a
                       href={`/posts/${post.id}`}
-                      className="text-gray-500 dark:text-gray-400 hover:text-blue-600"
+                      className="text-muted hover:text-primary"
                     >
                       View Details
                     </a>
@@ -193,7 +193,7 @@ export default function PostsFollowing({ loaderData }: Route.ComponentProps) {
               <div className="text-center">
                 <a
                   href={`/posts/following?cursor=${nextCursor}`}
-                  className="inline-block px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
+                  className="btn-secondary inline-block px-6 py-2 rounded-md"
                 >
                   Load More
                 </a>

@@ -235,7 +235,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
         <Form method="post" onSubmit={handleFormSubmit}>
           <CardContent className="space-y-6">
             {actionData?.error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
+              <div className="alert-destructive rounded-md p-3 text-sm">
                 {actionData.error}
               </div>
             )}
@@ -258,7 +258,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
               <textarea
                 id="bio"
                 name="bio"
-                className="w-full min-h-25 px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full min-h-25 px-3 py-2 text-sm rounded-md border-default bg-surface text-primary placeholder:text-muted focus:outline-none focus:ring-2" style={{focusRingColor: 'var(--primary-color)'}}
                 maxLength={500}
                 defaultValue={actionData?.fields?.bio as string}
                 placeholder="Tell us about yourself..."
@@ -296,7 +296,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
                       id={`style-${style}`}
                       name="climbingStyles"
                       value={style}
-                      className="w-4 h-4 text-blue-600 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 bg-surface border-default rounded focus:ring-2" style={{color: 'var(--primary-color)', focusRingColor: 'var(--primary-color)'}}
                       defaultChecked={
                         actionData?.fields?.climbingStyles?.includes(style as any)
                       }
@@ -315,7 +315,7 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
                 id="experienceLevel"
                 name="experienceLevel"
                 required
-                className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm rounded-md border-default bg-surface text-primary focus:outline-none focus:ring-2" style={{focusRingColor: 'var(--primary-color)'}}
                 defaultValue={actionData?.fields?.experienceLevel as string}
               >
                 <option value="">Select your experience level</option>

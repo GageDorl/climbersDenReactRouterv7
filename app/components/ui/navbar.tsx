@@ -59,13 +59,13 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
       {userId && <NavbarSocketHandler userId={userId} revalidator={revalidator} />}
       
       {/* Top Navbar */}
-      <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+      <nav className="sticky top-0 z-50 w-full border-b border-default bg-surface">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo and Brand */}
             <Link to="/" className="flex items-center space-x-2">
               <svg 
-                className="h-8 w-8 text-blue-600" 
+                className="h-8 w-8 text-accent" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -78,7 +78,7 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
                   d="M13 10V3L4 14h7v7l9-11h-7z" 
                 />
               </svg>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-xl font-bold text-primary">
                 climbersDen
               </span>
             </Link>
@@ -145,7 +145,7 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
                       />
                     </svg>
                     {unreadMessageCount > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+                      <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold" style={{color: 'var(--surface)'}}>
                         {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
                       </span>
                     )}
@@ -168,7 +168,7 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
                     type="submit" 
                     variant="ghost" 
                     size="sm"
-                    className="text-red-600 hover:text-red-700 dark:text-red-400"
+                    className="text-destructive"
                   >
                     Logout
                   </Button>
@@ -194,15 +194,15 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
 
       {/* Mobile Bottom Navigation - Only for authenticated users */}
       {userId && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950 sm:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-default bg-surface sm:hidden">
           <div className="flex h-16 items-center justify-around px-4">
             {/* Feed */}
             <Link 
               to="/posts" 
               className={`flex flex-col items-center justify-center space-y-1 ${
                 location.pathname.startsWith('/posts') 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-600 dark:text-gray-400'
+                  ? 'text-accent' 
+                  : 'text-secondary'
               }`}
             >
               <svg 
@@ -226,8 +226,8 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
               to="/discover" 
               className={`flex flex-col items-center justify-center space-y-1 ${
                 location.pathname === '/discover' 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-600 dark:text-gray-400'
+                  ? 'text-accent' 
+                  : 'text-secondary'
               }`}
             >
               <svg 
@@ -251,8 +251,8 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
               to="/crags" 
               className={`flex flex-col items-center justify-center space-y-1 ${
                 location.pathname.startsWith('/crags') 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-600 dark:text-gray-400'
+                  ? 'text-accent' 
+                  : 'text-secondary'
               }`}
             >
               <svg 
@@ -282,8 +282,8 @@ export function Navbar({ userId, displayName, unreadMessageCount = 0 }: NavbarPr
               to="/ticks" 
               className={`flex flex-col items-center justify-center space-y-1 ${
                 location.pathname.startsWith('/ticks') 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-gray-600 dark:text-gray-400'
+                  ? 'text-accent' 
+                  : 'text-secondary'
               }`}
             >
               <svg 

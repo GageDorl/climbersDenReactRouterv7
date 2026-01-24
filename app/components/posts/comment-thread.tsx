@@ -173,7 +173,7 @@ export function CommentThread({
       {/* Comments list */}
       <div className="space-y-2">
         {comments.length === 0 ? (
-          <p className="py-6 text-center text-gray-500 dark:text-gray-400">
+          <p className="py-6 text-center text-muted">
             No comments yet. Be the first to comment!
           </p>
         ) : (
@@ -192,7 +192,7 @@ export function CommentThread({
       {hasMore && (
         <div ref={observerTarget} className="py-4 text-center">
           {loadMoreFetcher.state === 'loading' ? (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-muted">
               Loading more comments...
             </div>
           ) : (

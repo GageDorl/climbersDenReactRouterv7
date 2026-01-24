@@ -149,7 +149,7 @@ export function CommentItem({
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold">
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-primary">
               {comment.user.displayName.charAt(0).toUpperCase()}
             </div>
           )}
@@ -162,7 +162,7 @@ export function CommentItem({
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-default rounded-lg bg-surface text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 rows={3}
               />
               <div className="flex gap-2">
@@ -189,14 +189,14 @@ export function CommentItem({
             </div>
           ) : (
             <>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-3 py-2 relative">
+              <div className="bg-secondary rounded-2xl px-3 py-2 relative">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-sm">{comment.user.displayName}</p>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="font-medium text-sm text-primary">{comment.user.displayName}</p>
+                  <span className="text-xs text-muted">
                     {timeAgo(new Date(comment.createdAt))}
                   </span>
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300 wrap-break-word">
+                <p className="text-sm text-primary wrap-break-word">
                   {comment.textContent}
                 </p>
 
@@ -205,19 +205,19 @@ export function CommentItem({
                   <div className="absolute top-2 right-2" ref={menuRef}>
                     <button
                       onClick={() => setShowMenu(!showMenu)}
-                      className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+                      className="p-1 hover:bg-surface rounded-full"
                     >
-                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                      <MoreVertical className="w-4 h-4 text-muted" />
                     </button>
                     
                     {showMenu && (
-                      <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                      <div className="absolute right-0 mt-1 w-32 bg-surface border border-default rounded-lg shadow-lg z-10">
                         <button
                           onClick={() => {
                             setIsEditing(true);
                             setShowMenu(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2"
                         >
                           <Edit2 className="w-3 h-3" />
                           Edit
@@ -228,7 +228,7 @@ export function CommentItem({
                             setShowMenu(false);
                           }}
                           disabled={isDeleting}
-                          className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50"
+                          className="w-full px-3 py-2 text-left text-sm text-destructive hover:bg-secondary flex items-center gap-2 disabled:opacity-50"
                         >
                           <Trash2 className="w-3 h-3" />
                           Delete
@@ -243,7 +243,7 @@ export function CommentItem({
               <div className="flex gap-3 mt-1 ml-3 text-xs">
                 <button
                   onClick={() => setShowReplying(!showReplying)}
-                  className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
+                  className="text-secondary hover:text-accent font-medium"
                 >
                   Reply
                 </button>
@@ -298,7 +298,7 @@ export function CommentItem({
                 repliesFetcher.load(`/api/comments/${comment.id}/replies?skip=${allReplies.length}`);
               }}
               disabled={repliesFetcher.state === 'loading'}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-50"
+              className="text-sm link-primary font-medium disabled:opacity-50"
             >
               {repliesFetcher.state === 'loading' 
                 ? 'Loading...' 

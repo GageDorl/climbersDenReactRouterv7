@@ -29,7 +29,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
   return (
     <Link
       to={`/messages/${conversation.id}`}
-      className="block rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md dark:bg-gray-800"
+      className="block rounded-lg bg-surface p-4 shadow transition-shadow hover:shadow-md"
     >
       <div className="flex items-start space-x-4">
         {/* Avatar */}
@@ -41,7 +41,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
               className="h-12 w-12 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full text-white bg-primary">
               {conversation.otherParticipant.displayName[0].toUpperCase()}
             </div>
           )}
@@ -50,11 +50,11 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm font-semibold text-primary">
               {conversation.otherParticipant.displayName}
             </p>
             {lastMessage && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted">
                 {(() => {
                   const date = new Date(lastMessage.sentAt);
                   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -68,7 +68,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
           </div>
 
           {lastMessage && (
-            <p className="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
+            <p className="mt-1 truncate text-sm text-secondary">
               {isFromCurrentUser && "You: "}
               {lastMessage.textContent || (
                 <span className="italic">Sent media</span>
@@ -80,7 +80,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
         {/* Unread Badge */}
         {conversation.unreadCount > 0 && (
           <div className="flex-shrink-0">
-            <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-1 text-xs font-bold text-white">
+            <span className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold badge-primary">
               {conversation.unreadCount}
             </span>
           </div>

@@ -35,20 +35,20 @@ export function UploadProgress({
   const errorCount = items.filter((item) => item.status === 'error').length;
 
   return (
-    <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
+    <div className="space-y-4 p-4 border border-default rounded-lg bg-surface">
       {/* Overall Progress */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium text-sm">Uploading Media</h3>
-            <p className="text-xs text-gray-500 mt-1">
+            <h3 className="font-medium text-sm text-primary">Uploading Media</h3>
+            <p className="text-xs text-muted mt-1">
               {successCount} succeeded
               {errorCount > 0 && ` • ${errorCount} failed`}
               {uploadingCount > 0 && ` • ${uploadingCount} uploading`}
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">{totalProgress}%</div>
+            <div className="text-2xl font-bold text-accent">{totalProgress}%</div>
           </div>
         </div>
         <Progress value={totalProgress} className="h-2" />
@@ -59,30 +59,30 @@ export function UploadProgress({
         {items.map((item) => (
           <div
             key={item.id}
-            className="p-3 border border-gray-100 dark:border-gray-800 rounded-md bg-gray-50 dark:bg-gray-800/50"
+            className="p-3 border border-default rounded-md bg-secondary"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-start gap-2 flex-1 min-w-0">
                 {/* Status Icon */}
                 <div className="shrink-0 mt-0.5">
                   {item.status === 'uploading' && (
-                    <Loader className="w-4 h-4 text-blue-500 animate-spin" />
+                    <Loader className="w-4 h-4 text-accent animate-spin" />
                   )}
                   {item.status === 'success' && (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-success" />
                   )}
                   {item.status === 'error' && (
-                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <AlertCircle className="w-4 h-4 text-destructive" />
                   )}
                 </div>
 
                 {/* Filename */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium truncate text-primary">
                     {item.filename}
                   </p>
                   {item.error && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    <p className="text-xs text-destructive mt-1">
                       {item.error}
                     </p>
                   )}
@@ -91,7 +91,7 @@ export function UploadProgress({
 
               {/* Progress or Status */}
               {item.status === 'uploading' && (
-                <div className="text-xs text-gray-500 font-medium ml-2">
+                <div className="text-xs text-muted font-medium ml-2">
                   {item.progress}%
                 </div>
               )}
@@ -109,7 +109,7 @@ export function UploadProgress({
                   <button
                     type="button"
                     onClick={() => onRetry(item.id)}
-                    className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded transition-colors"
+                    className="text-xs px-2 py-1 btn-primary rounded transition-colors"
                   >
                     Retry
                   </button>
@@ -118,7 +118,7 @@ export function UploadProgress({
                   <button
                     type="button"
                     onClick={() => onDismiss(item.id)}
-                    className="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
+                    className="text-xs px-2 py-1 btn-secondary rounded transition-colors"
                   >
                     Dismiss
                   </button>
@@ -131,7 +131,7 @@ export function UploadProgress({
 
       {/* Summary */}
       {uploadingCount === 0 && (
-        <div className="text-xs text-center text-gray-500">
+        <div className="text-xs text-center text-muted">
           {errorCount > 0
             ? `${successCount} file${successCount !== 1 ? 's' : ''} uploaded, ${errorCount} failed`
             : `All ${successCount} file${successCount !== 1 ? 's' : ''} uploaded successfully`}

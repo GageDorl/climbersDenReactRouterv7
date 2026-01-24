@@ -108,7 +108,7 @@ export default function Login({ actionData }: { actionData?: any }) {
   const redirectTo = searchParams.get("redirectTo") || "/posts";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(to bottom, var(--surface), var(--secondary-color))'}}>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
@@ -121,7 +121,7 @@ export default function Login({ actionData }: { actionData?: any }) {
           
           <CardContent className="space-y-4">
             {actionData?.error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+              <div className="alert-destructive rounded-md p-3 text-sm">
                 {actionData.error}
               </div>
             )}
@@ -155,7 +155,7 @@ export default function Login({ actionData }: { actionData?: any }) {
             <div className="flex justify-end">
               <a
                 href="/auth/forgot-password"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm link-primary"
               >
                 Forgot password?
               </a>
@@ -171,9 +171,9 @@ export default function Login({ actionData }: { actionData?: any }) {
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
 
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-sm text-center text-muted">
               Don't have an account?{" "}
-              <a href="/auth/register" className="text-blue-600 hover:underline">
+              <a href="/auth/register" className="link-primary">
                 Create one
               </a>
             </p>

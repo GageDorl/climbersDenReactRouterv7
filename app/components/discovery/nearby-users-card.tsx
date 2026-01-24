@@ -41,7 +41,7 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
   return (
     <Link
       to={`/users/${user.displayName}`}
-      className="group rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden hover:shadow-lg dark:hover:shadow-lg hover:shadow-gray-300/50 dark:hover:shadow-gray-900/50 transition-all"
+      className="group rounded-lg border border-default bg-surface overflow-hidden hover:shadow-lg transition-all"
     >
       <div className="p-4">
         {/* Profile Photo */}
@@ -51,11 +51,11 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
               src={user.profilePhotoUrl}
               alt={user.displayName}
               onError={() => setImageError(true)}
-              className="w-20 h-20 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all"
+              className="w-20 h-20 rounded-full object-cover ring-2 ring-default transition-all"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all">
-              <span className="text-xl font-bold text-white">
+            <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center ring-2 ring-default transition-all">
+              <span className="text-xl font-bold text-surface">
                 {user.displayName[0].toUpperCase()}
               </span>
             </div>
@@ -63,12 +63,12 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
         </div>
 
         {/* Name */}
-        <h3 className="font-semibold text-center text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <h3 className="font-semibold text-center text-primary mb-1 transition-colors">
           {user.displayName}
         </h3>
 
         {/* Location */}
-        <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-400 mb-3">
+        <div className="flex items-center justify-center gap-1 text-xs text-secondary mb-3">
           <MapPin className="h-3 w-3" />
           <span>
             {user.distance.toFixed(1)} mi away
@@ -76,14 +76,14 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
         </div>
 
         {user.locationCity && (
-          <p className="text-xs text-gray-500 dark:text-gray-500 text-center mb-3">
+          <p className="text-xs text-muted text-center mb-3">
             {user.locationCity}
           </p>
         )}
 
         {/* Experience Level */}
         <div className="mb-3">
-          <span className="inline-block px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs font-medium">
+          <span className="inline-block px-2 py-1 rounded-full badge-accent text-xs font-medium">
             {experienceLevelLabels[user.experienceLevel] || user.experienceLevel}
           </span>
         </div>
@@ -94,13 +94,13 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
             {user.climbingStyles.slice(0, 3).map((style) => (
               <span
                 key={style}
-                className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                className="text-xs px-2 py-1 rounded-full badge-secondary"
               >
                 {climbingStyleLabels[style] || style}
               </span>
             ))}
             {user.climbingStyles.length > 3 && (
-              <span className="text-xs px-2 py-1 text-gray-600 dark:text-gray-400">
+              <span className="text-xs px-2 py-1 text-muted">
                 +{user.climbingStyles.length - 3}
               </span>
             )}
@@ -108,7 +108,7 @@ export function NearbyUsersCard({ user }: NearbyUsersCardProps) {
         )}
 
         {/* View Profile Link */}
-        <div className="text-center text-xs text-blue-600 dark:text-blue-400 font-medium group-hover:underline">
+        <div className="text-center text-xs link-primary font-medium group-hover:underline">
           View Profile →
         </div>
       </div>

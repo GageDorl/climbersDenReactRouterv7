@@ -130,10 +130,10 @@ export function CragMap({
         const popup = new Popup({ offset: 25 })
           .setHTML(`
             <div class="p-2">
-              <h3 class="font-semibold text-gray-900 mb-1">${crag.name}</h3>
-              ${crag.numRoutes ? `<p class="text-sm text-gray-600 mb-2">${crag.numRoutes} routes</p>` : ''}
-              ${crag.grades ? `<p class="text-sm text-gray-600 mb-3">${formatDifficulty(crag.grades)}</p>` : ''}
-              <a href="/crags/${crag.id}" class="text-sm text-blue-600 hover:underline font-medium">
+              <h3 class="font-semibold text-primary mb-1">${crag.name}</h3>
+              ${crag.numRoutes ? `<p class="text-sm text-secondary mb-2">${crag.numRoutes} routes</p>` : ''}
+              ${crag.grades ? `<p class="text-sm text-secondary mb-3">${formatDifficulty(crag.grades)}</p>` : ''}
+              <a href="/crags/${crag.id}" class="text-sm link-primary hover:underline font-medium">
                 View Details →
               </a>
             </div>

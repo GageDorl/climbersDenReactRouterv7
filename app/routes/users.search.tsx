@@ -115,17 +115,15 @@ export default function UsersSearchRoute({ loaderData }: Route.ComponentProps) {
   const { users, filters } = loaderData;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen p-4 bg-surface">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Find Climbers</h1>
+          <h1 className="text-3xl font-bold text-primary">Find Climbers</h1>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="p-6 bg-white dark:bg-gray-800">
+        <Card className="p-6 bg-surface">
           <Form method="get" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Name Search */}
               <div>
                 <Label htmlFor="query">Search by name</Label>
                 <Input
@@ -137,7 +135,6 @@ export default function UsersSearchRoute({ loaderData }: Route.ComponentProps) {
                 />
               </div>
 
-              {/* Location Filter */}
               <div>
                 <Label htmlFor="location">Location</Label>
                 <Input
@@ -149,13 +146,12 @@ export default function UsersSearchRoute({ loaderData }: Route.ComponentProps) {
                 />
               </div>
 
-              {/* Climbing Style Filter */}
               <div>
                 <Label htmlFor="climbingStyle">Climbing Style</Label>
                 <select
                   id="climbingStyle"
                   name="climbingStyle"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-md border-default bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2"
                   defaultValue={filters.climbingStyle}
                 >
                   <option value="">All styles</option>
@@ -166,13 +162,12 @@ export default function UsersSearchRoute({ loaderData }: Route.ComponentProps) {
                 </select>
               </div>
 
-              {/* Experience Level Filter */}
               <div>
                 <Label htmlFor="experienceLevel">Experience Level</Label>
                 <select
                   id="experienceLevel"
                   name="experienceLevel"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-md border-default bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2"
                   defaultValue={filters.experienceLevel}
                 >
                   <option value="">All levels</option>
@@ -186,27 +181,22 @@ export default function UsersSearchRoute({ loaderData }: Route.ComponentProps) {
 
             <div className="flex gap-2">
               <Button type="submit">Search</Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  window.location.href = '/users/search';
-                }}
-              >
-                Clear Filters
-              </Button>
+              <a href="/users/search">
+                <Button type="button" variant="secondary">
+                  Clear Filters
+                </Button>
+              </a>
             </div>
           </Form>
         </Card>
 
-        {/* Results */}
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             {users.length} {users.length === 1 ? 'climber' : 'climbers'} found
           </p>
 
           {users.length === 0 ? (
-            <Card className="p-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800">
+            <Card className="p-8 text-center text-muted bg-surface">
               No climbers found matching your search criteria. Try adjusting your filters.
             </Card>
           ) : (
@@ -228,10 +218,9 @@ interface UserResultCardProps {
 
 function UserResultCard({ user }: UserResultCardProps) {
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+    <Card className="p-4 hover:shadow-md transition-shadow bg-surface">
       <a href={`/users/${user.displayName}`} className="block">
         <div className="flex items-start gap-4">
-          {/* Profile Photo */}
           <div className="shrink-0">
             {user.profilePhotoUrl ? (
               <img
@@ -240,34 +229,33 @@ function UserResultCard({ user }: UserResultCardProps) {
                 className="w-16 h-16 rounded-full object-cover"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xl font-semibold">
+              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-primary text-xl font-semibold">
                 {user.displayName.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
 
-          {/* User Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+              <h3 className="text-lg font-semibold text-primary truncate">
                 {user.displayName}
               </h3>
               {user.isFollowing && (
-                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                <span className="text-xs badge-primary px-2 py-1 rounded">
                   Following
                 </span>
               )}
             </div>
 
             {user.locationCity && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">📍 {user.locationCity}</p>
+              <p className="text-sm text-secondary mt-1">📍 {user.locationCity}</p>
             )}
 
             {user.bio && (
-              <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 line-clamp-2">{user.bio}</p>
+              <p className="text-sm text-secondary mt-2 line-clamp-2">{user.bio}</p>
             )}
 
-            <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted">
               <span>{user.followerCount || 0} followers</span>
               <span>•</span>
               <span className="capitalize">{user.experienceLevel}</span>
@@ -278,7 +266,7 @@ function UserResultCard({ user }: UserResultCardProps) {
                 {user.climbingStyles.map((style) => (
                   <span
                     key={style}
-                    className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded capitalize"
+                    className="text-xs badge-accent px-2 py-1 rounded capitalize"
                   >
                     {style}
                   </span>

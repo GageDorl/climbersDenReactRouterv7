@@ -314,13 +314,13 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
   }, [params.conversationId, userId]);
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen flex-col bg-surface">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-gray-950">
+      <div className="border-b border-default bg-surface px-4 py-4">
         <div className="mx-auto flex max-w-4xl items-center space-x-4">
           <Link
             to="/messages"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className="text-secondary hover:text-primary"
           >
             <svg
               className="h-6 w-6"
@@ -346,13 +346,13 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-white" style={{backgroundColor: 'var(--primary-color)'}}>
                   {otherParticipant.displayName[0].toUpperCase()}
                 </div>
               )}
               <Link
                 to={`/users/${otherParticipant.displayName}`}
-                className="text-lg font-semibold text-gray-900 hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+                className="text-lg font-semibold text-primary hover:opacity-80"
               >
                 {otherParticipant.displayName}
               </Link>
@@ -371,13 +371,13 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
       />
       
       {isTyping && otherParticipant && (
-        <div className="border-t border-gray-200 px-4 py-2 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+        <div className="border-t border-default px-4 py-2 text-sm text-muted">
           {otherParticipant.displayName} is typing...
         </div>
       )}
 
       {/* Message Input */}
-      <div className="border-t border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-gray-950">
+      <div className="border-t border-default bg-surface px-4 py-4">
         <div className="mx-auto max-w-4xl">
           <MessageInput 
             conversationId={params.conversationId}

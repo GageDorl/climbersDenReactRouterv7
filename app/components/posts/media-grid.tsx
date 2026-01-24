@@ -74,20 +74,20 @@ export function MediaGrid({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">
+        <div className="text-sm font-medium text-primary">
           Media Items ({media.length}/{maxItems})
         </div>
         {media.length > 0 && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted">
             Total: {formatFileSize(media.reduce((sum, m) => sum + m.size, 0))}
           </div>
         )}
       </div>
 
       {media.length === 0 ? (
-        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
-          <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">
+        <div className="text-center py-8 border-2 border-dashed border-default rounded-lg bg-secondary">
+          <ImageIcon className="w-8 h-8 text-muted mx-auto mb-2" />
+          <p className="text-sm text-muted">
             No media added yet. Upload images or videos to get started.
           </p>
         </div>
@@ -101,8 +101,8 @@ export function MediaGrid({
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, item.id)}
               onDragEnd={handleDragEnd}
-              className={`relative group rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-square transition-all cursor-pointer ${
-                draggedId === item.id ? 'opacity-50 ring-2 ring-blue-500' : 'hover:ring-2 hover:ring-gray-400'
+              className={`relative group rounded-lg overflow-hidden bg-secondary aspect-square transition-all cursor-pointer ${
+                draggedId === item.id ? 'opacity-50 ring-2 ring-accent' : 'hover:ring-2 hover:ring-default'
               }`}
               onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
             >
@@ -114,8 +114,8 @@ export function MediaGrid({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                  <Video className="w-8 h-8 text-gray-400" />
+                <div className="w-full h-full flex items-center justify-center" style={{backgroundColor: 'var(--text-primary)'}}>
+                  <Video className="w-8 h-8 text-muted" />
                 </div>
               )}
 
@@ -124,7 +124,8 @@ export function MediaGrid({
                 {/* Drag Handle */}
                 <button
                   type="button"
-                  className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
+                  className="p-1.5 rounded transition-colors"
+                  style={{backgroundColor: 'var(--muted-color)', color: 'var(--background)'}}
                   title="Drag to reorder"
                 >
                   <GripVertical className="w-4 h-4" />
@@ -135,7 +136,7 @@ export function MediaGrid({
                   <button
                     type="button"
                     onClick={() => onEdit(item.id, item.file, item.preview)}
-                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white transition-colors"
+                    className="px-2 py-1 btn-primary rounded text-sm transition-colors"
                   >
                     Crop
                   </button>
@@ -145,7 +146,7 @@ export function MediaGrid({
                 <button
                   type="button"
                   onClick={() => onRemove(item.id)}
-                  className="p-1.5 bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
+                  className="p-1.5 btn-destructive rounded transition-colors"
                   title="Remove this item"
                 >
                   <X className="w-4 h-4" />
@@ -153,7 +154,7 @@ export function MediaGrid({
               </div>
 
               {/* Badge */}
-              <div className="absolute top-2 right-2 px-2 py-1 bg-black bg-opacity-70 rounded text-xs text-white flex items-center gap-1">
+              <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs flex items-center gap-1" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', color: 'white'}}>
                 {item.type === 'image' ? (
                   <>
                     <ImageIcon className="w-3 h-3" />
@@ -168,7 +169,7 @@ export function MediaGrid({
               </div>
 
               {/* File Size */}
-              <div className="absolute bottom-2 left-2 px-2 py-1 bg-black bg-opacity-70 rounded text-xs text-white">
+              <div className="absolute bottom-2 left-2 px-2 py-1 rounded text-xs" style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', color: 'white'}}>
                 {formatFileSize(item.size)}
               </div>
             </div>
@@ -177,7 +178,7 @@ export function MediaGrid({
       )}
 
       {/* Info */}
-      <div className="text-xs text-gray-500 space-y-1">
+      <div className="text-xs text-muted space-y-1">
         <p>• Drag media items to reorder</p>
         <p>• Click crop to edit images</p>
         <p>• Maximum {maxItems} items per post</p>

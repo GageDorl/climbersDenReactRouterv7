@@ -40,8 +40,8 @@ export function LikeButton({ postId, initialLiked, initialCount }: LikeButtonPro
       disabled={fetcher.state !== 'idle'}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 ${
         isLiked
-          ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ? 'badge-destructive'
+          : 'bg-secondary text-secondary hover:bg-surface'
       }`}
     >
       <span className="text-lg">{isLiked ? '❤️' : '🤍'}</span>

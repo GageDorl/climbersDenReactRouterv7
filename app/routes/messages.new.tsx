@@ -194,7 +194,7 @@ export default function NewMessage() {
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white">
                           {user.displayName[0].toUpperCase()}
                         </div>
                       )}

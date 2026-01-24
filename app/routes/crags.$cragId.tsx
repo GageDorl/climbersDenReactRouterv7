@@ -84,8 +84,8 @@ export default function CragDetailsRoute({ loaderData }: Route.ComponentProps) {
     <PageWrapper maxWidth="4xl">
       <div className="space-y-6">
         {/* Breadcrumb navigation */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Link to="/crags" className="text-blue-600 dark:text-blue-400 hover:underline">
+        <div className="flex items-center gap-2 text-sm text-secondary">
+          <Link to="/crags" className="link-primary">
             Search
           </Link>
           {area.ancestors.length > 0 && (
@@ -95,7 +95,7 @@ export default function CragDetailsRoute({ loaderData }: Route.ComponentProps) {
                   <span>›</span>
                   <Link
                     to={`/crags/${ancestor.uuid}`}
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    className="link-primary"
                   >
                     {formatName(ancestor.name)}
                   </Link>
@@ -104,26 +104,26 @@ export default function CragDetailsRoute({ loaderData }: Route.ComponentProps) {
               <span>›</span>
             </>
           )}
-          <span className="text-gray-900 dark:text-gray-100">{formatName(area.name)}</span>
+          <span className="text-primary">{formatName(area.name)}</span>
         </div>
 
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
-              <CardTitle className="text-2xl text-gray-900 dark:text-white">{formatName(area.name)}</CardTitle>
+              <CardTitle className="text-2xl text-primary">{formatName(area.name)}</CardTitle>
               {isLoggedIn && <FavoriteButton cragId={area.uuid} isFavorited={isFavorited} />}
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+          <CardContent className="space-y-4 text-sm text-secondary">
             <div className="flex flex-wrap gap-3">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 text-xs font-medium">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-primary text-xs font-medium">
                 {area.totalClimbs} routes
               </span>
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-medium">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-secondary text-xs font-medium">
                 {formatCoords(area.latitude, area.longitude)}
               </span>
               {distance && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 text-xs font-medium">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-success text-xs font-medium">
                   📍 {distance} away
                 </span>
               )}
@@ -131,7 +131,7 @@ export default function CragDetailsRoute({ loaderData }: Route.ComponentProps) {
 
             {area.children.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Sub-areas</h3>
+                <h3 className="text-sm font-semibold text-primary">Sub-areas</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {area.children.map((child: (typeof area.children)[number]) => (
                     <Link
@@ -149,13 +149,13 @@ export default function CragDetailsRoute({ loaderData }: Route.ComponentProps) {
             )}
 
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Routes</h3>
+              <h3 className="text-sm font-semibold text-primary">Routes</h3>
               <RouteList climbs={area.climbs} cragId={area.uuid} />
             </div>
 
             {area.climbs.length !== 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">7-day Weather</h3>
+                <h3 className="text-sm font-semibold text-primary">7-day Weather</h3>
                 {weather ? (
                   <WeatherWidget forecast={weather} />
                 ) : (
