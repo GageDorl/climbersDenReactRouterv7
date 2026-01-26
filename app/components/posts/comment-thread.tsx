@@ -18,6 +18,7 @@ interface CommentThreadProps {
   hasMore: boolean;
   nextCursor?: string | null;
   totalCount?: number;
+  isOpen?: boolean;
 }
 
 export function CommentThread({
@@ -26,6 +27,7 @@ export function CommentThread({
   currentUserId,
   hasMore: initialHasMore,
   nextCursor: initialNextCursor,
+  isOpen,
 }: CommentThreadProps) {
   // Comments already come from loader in correct order (oldest first, newest at bottom)
   const [comments, setComments] = useState(initialComments);
@@ -35,6 +37,10 @@ export function CommentThread({
   const observerTarget = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const { socket } = useSocket();
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const hasLoadedInitialRef = useRef(false);
+  const lastRequestedCursorRef = useRef<string | null | undefined>(undefined);
+  const prevIsOpenRef = useRef<boolean | undefined>(undefined);
 
   // Real-time comment updates
   useEffect(() => {
@@ -46,14 +52,14 @@ export function CommentThread({
       console.log('[CommentThread] Received comment:new', data);
       if (data.postId === postId) {
         // Check if comment already exists (prevent duplicates from optimistic update)
-        setComments((prev) => {
-          const exists = prev.some(c => c.id === data.comment.id);
-          if (exists) {
-            console.log('[CommentThread] Comment already exists, skipping');
-            return prev;
-          }
-          return [...prev, data.comment];
-        });
+        const id = data.comment.id;
+        if (seenIdsRef.current.has(id)) {
+          console.log('[CommentThread] Comment already seen, skipping (socket)');
+          return;
+        }
+        seenIdsRef.current.add(id);
+        // Newest comments are shown at the top
+        setComments((prev) => [data.comment, ...prev]);
       }
     };
 
@@ -113,16 +119,46 @@ export function CommentThread({
     }
   }, []);
 
+  // If no initial comments were provided (e.g. opened via bottom sheet), load the first page
+  useEffect(() => {
+    if ((initialComments?.length || 0) === 0 && loadMoreFetcher.state === 'idle' && !hasLoadedInitialRef.current) {
+      hasLoadedInitialRef.current = true;
+      lastRequestedCursorRef.current = undefined;
+      loadMoreFetcher.load(`/api/posts/${postId}/comments?limit=10`);
+    }
+  }, [initialComments, postId, loadMoreFetcher]);
+
+  // Reload when the sheet is opened again
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      // opened now; ensure we fetch initial page if comments are empty
+      if ((comments.length === 0 || (initialComments?.length || 0) === 0) && loadMoreFetcher.state === 'idle') {
+        hasLoadedInitialRef.current = false;
+        lastRequestedCursorRef.current = undefined;
+        hasLoadedInitialRef.current = true;
+        loadMoreFetcher.load(`/api/posts/${postId}/comments?limit=10`);
+      }
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, postId, loadMoreFetcher, comments.length, initialComments]);
+
   // Fetch more comments when scrolling to bottom
   useEffect(() => {
     if (!observerTarget.current) return;
 
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && hasMore && loadMoreFetcher.state === 'idle') {
-        loadMoreFetcher.load(
-          `/api/posts/${postId}/comments?limit=10&cursor=${nextCursor}`
-        );
-      }
+      if (!entry.isIntersecting) return;
+      if (!hasMore) return;
+      if (loadMoreFetcher.state !== 'idle') return;
+
+      // Prevent requesting the same cursor repeatedly
+      const cursorToRequest = nextCursor;
+      if (lastRequestedCursorRef.current === cursorToRequest) return;
+      lastRequestedCursorRef.current = cursorToRequest;
+
+      loadMoreFetcher.load(
+        `/api/posts/${postId}/comments?limit=10${cursorToRequest ? `&cursor=${cursorToRequest}` : ''}`
+      );
     });
 
     observer.observe(observerTarget.current);
@@ -135,9 +171,36 @@ export function CommentThread({
       loadMoreFetcher.state === 'idle' &&
       loadMoreFetcher.data?.comments
     ) {
-      setComments((prev) => [...prev, ...loadMoreFetcher.data.comments]);
+      const fetched = loadMoreFetcher.data.comments || [];
+      // Update hasMore/nextCursor immediately
       setHasMore(loadMoreFetcher.data.hasMore);
       setNextCursor(loadMoreFetcher.data.nextCursor);
+
+      // If nothing was fetched, don't modify existing comments (avoid wiping)
+      if (fetched.length === 0) return;
+
+      setComments((prev) => {
+        // If no existing comments, use fetched as source of truth and seed seen ids
+        if (prev.length === 0) {
+          for (const c of fetched) seenIdsRef.current.add(c.id);
+          return [...fetched];
+        }
+
+        // Merge while preserving existing order and avoiding duplicates
+        const map = new Map<string, typeof fetched[number]>();
+        for (const c of prev) {
+          map.set(c.id, c);
+          seenIdsRef.current.add(c.id);
+        }
+        for (const c of fetched) {
+          if (!map.has(c.id)) {
+            map.set(c.id, c);
+            seenIdsRef.current.add(c.id);
+          }
+        }
+        return Array.from(map.values());
+      });
+      
     }
   }, [loadMoreFetcher.data, loadMoreFetcher.state]);
 
@@ -147,13 +210,20 @@ export function CommentThread({
     // Socket.IO listener will skip if already exists
     if (data?.comment) {
       console.log('[CommentThread] Adding optimistic comment:', data.comment.id, 'parentCommentId:', data.comment.parentCommentId);
+      const id = data.comment.id;
+      if (seenIdsRef.current.has(id)) {
+        console.log('[CommentThread] Comment already added optimistically (seen)');
+        return;
+      }
+      seenIdsRef.current.add(id);
       setComments((prev) => {
-        const exists = prev.some(c => c.id === data.comment.id);
+        const exists = prev.some(c => c.id === id);
         if (exists) {
           console.log('[CommentThread] Comment already added optimistically');
           return prev;
         }
-        return [...prev, data.comment];
+        // Prepend optimistic comment so newest appears at the top
+        return [data.comment, ...prev];
       });
     } else {
       console.log('[CommentThread] No comment data provided');
@@ -173,9 +243,11 @@ export function CommentThread({
       {/* Comments list */}
       <div className="space-y-2">
         {comments.length === 0 ? (
-          <p className="py-6 text-center text-muted">
-            No comments yet. Be the first to comment!
-          </p>
+          loadMoreFetcher.state === 'loading' ? (
+            <p className="py-6 text-center text-muted">Loading comments...</p>
+          ) : (
+            <p className="py-6 text-center text-muted">No comments yet. Be the first to comment!</p>
+          )
         ) : (
           comments.map((comment) => (
             <CommentItem

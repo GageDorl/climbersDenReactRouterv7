@@ -56,6 +56,7 @@ export function CommentItem({
   postId,
   isPreview = false,
 }: CommentItemProps) {
+  if (!comment) return null;
   const deleteFetcher = useFetcher();
   const editFetcher = useFetcher();
   const repliesFetcher = useFetcher();
@@ -63,7 +64,23 @@ export function CommentItem({
   const [showReplying, setShowReplying] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
-  const [allReplies, setAllReplies] = useState(comment.replies || []);
+  const [allReplies, setAllReplies] = useState<(Comment & { user: Pick<User, 'id' | 'displayName' | 'profilePhotoUrl'> })[]>([]);
+
+  // Seed initial replies if provided on the comment prop
+  useEffect(() => {
+    if (comment.replies && comment.replies.length > 0) {
+      setAllReplies((prev) => {
+        const combined = [...prev, ...(comment.replies as any)];
+        const seen = new Set<string>();
+        return combined.filter((r) => {
+          if (seen.has(r.id)) return false;
+          seen.add(r.id);
+          return true;
+        });
+      });
+    }
+  }, [comment.replies]);
+  const replyCount = (comment._count && typeof comment._count.replies === 'number') ? comment._count.replies : (comment.replies ? comment.replies.length : 0);
   const [editText, setEditText] = useState(comment.textContent);
   const menuRef = useRef<HTMLDivElement>(null);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -74,7 +91,18 @@ export function CommentItem({
   // Update replies when fetcher returns data
   useEffect(() => {
     if (repliesFetcher.data?.replies) {
-      setAllReplies([...allReplies, ...repliesFetcher.data.replies]);
+      setAllReplies((prev) => {
+        const combined = [...prev, ...repliesFetcher.data.replies];
+        const seen = new Set<string>();
+        const deduped: typeof combined = [];
+        for (const r of combined) {
+          if (!seen.has(r.id)) {
+            seen.add(r.id);
+            deduped.push(r);
+          }
+        }
+        return deduped;
+      });
       setShowAllReplies(true);
     }
   }, [repliesFetcher.data]);
@@ -266,9 +294,17 @@ export function CommentItem({
               if (data?.comment) {
                 console.log('[CommentItem] Adding reply:', data.comment);
                 setAllReplies((prev: typeof allReplies) => {
-                  const updated = [...prev, data.comment];
-                  console.log('[CommentItem] allReplies after:', updated);
-                  return updated;
+                  const combined = [...prev, data.comment];
+                  const seen = new Set<string>();
+                  const deduped: typeof combined = [];
+                  for (const r of combined) {
+                    if (!seen.has(r.id)) {
+                      seen.add(r.id);
+                      deduped.push(r);
+                    }
+                  }
+                  console.log('[CommentItem] allReplies after:', deduped);
+                  return deduped;
                 });
               }
               setShowReplying(false);
@@ -279,32 +315,52 @@ export function CommentItem({
       )}
 
       {/* Replies */}
-      {allReplies && allReplies.length > 0 && (
+      {(replyCount > 0) && (
         <div className="ml-11 mt-2 space-y-2">
-          {allReplies.map((reply: Comment & { user: Pick<User, 'id' | 'displayName' | 'profilePhotoUrl'>; replies?: any[] }) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              currentUserId={currentUserId}
-              postId={postId}
-              isPreview={isPreview}
-            />
-          ))}
-          
-          {/* View More Replies Button */}
-          {isPreview && comment._count && comment._count.replies > allReplies.length && (
-            <button
-              onClick={() => {
-                repliesFetcher.load(`/api/comments/${comment.id}/replies?skip=${allReplies.length}`);
-              }}
-              disabled={repliesFetcher.state === 'loading'}
-              className="text-sm link-primary font-medium disabled:opacity-50"
-            >
-              {repliesFetcher.state === 'loading' 
-                ? 'Loading...' 
-                : `View ${comment._count.replies - allReplies.length} more ${comment._count.replies - allReplies.length === 1 ? 'reply' : 'replies'}`
+          <button
+            onClick={() => {
+              if (!showAllReplies) {
+                // load first page of replies
+                repliesFetcher.load(`/api/comments/${comment.id}/replies?limit=5`);
+              } else {
+                // hide replies
+                setShowAllReplies(false);
               }
-            </button>
+            }}
+            disabled={repliesFetcher.state === 'loading'}
+            className="text-sm link-primary font-medium disabled:opacity-50"
+          >
+            {repliesFetcher.state === 'loading' ? 'Loading...' : (showAllReplies ? 'Hide replies' : `Show replies (${replyCount})`) }
+          </button>
+
+          {showAllReplies && allReplies.length > 0 && (
+            <div className="space-y-2">
+              {allReplies.map((reply) => (
+                <CommentItem
+                  key={reply.id}
+                  comment={reply}
+                  currentUserId={currentUserId}
+                  postId={postId}
+                  isPreview={isPreview}
+                />
+              ))}
+
+              {/* Load more replies */}
+              {isPreview && replyCount > allReplies.length && (
+                <button
+                  onClick={() => {
+                    repliesFetcher.load(`/api/comments/${comment.id}/replies?skip=${allReplies.length}`);
+                  }}
+                  disabled={repliesFetcher.state === 'loading'}
+                  className="text-sm link-primary font-medium disabled:opacity-50"
+                >
+                  {repliesFetcher.state === 'loading' 
+                    ? 'Loading...' 
+                    : `View ${replyCount - allReplies.length} more ${replyCount - allReplies.length === 1 ? 'reply' : 'replies'}`
+                  }
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

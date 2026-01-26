@@ -26,7 +26,7 @@ export function PostEngagementFooter({
       <div className="flex justify-between">
         {/* Like Button */}
         <button
-          onClick={onLikeClick}
+          onClick={(e) => { e.stopPropagation(); onLikeClick && onLikeClick(); }}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors ${
             isLiked ? 'text-destructive' : 'text-secondary'
           }`}
@@ -39,7 +39,7 @@ export function PostEngagementFooter({
 
         {/* Comment Button */}
         <button
-          onClick={onCommentClick}
+          onClick={(e) => { e.stopPropagation(); onCommentClick && onCommentClick(); }}
           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors text-secondary"
         >
           <MessageCircle className="w-5 h-5" />
@@ -48,7 +48,7 @@ export function PostEngagementFooter({
 
         {/* Share Button */}
         <button
-          onClick={onShareClick}
+          onClick={(e) => { e.stopPropagation(); onShareClick && onShareClick(); }}
           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary transition-colors text-secondary"
         >
           <Share2 className="w-5 h-5" />

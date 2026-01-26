@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { Card, CardContent, CardHeader, CardMedia } from '~/components/ui/card';
-import { CommentPreview, PostEngagementFooter, CommentThread, CommentInput, ShareModal, PostOptionsMenu } from './index';
+import { PostEngagementFooter, CommentThread, ShareModal, PostOptionsMenu } from './index';
+import { BottomSheet } from '~/components/ui/bottom-sheet';
 import { DoubleTapHeart } from './double-tap-heart';
 import { useSocket } from '~/hooks/use-socket';
 import { useDoubleTap } from '~/hooks/use-double-tap';
@@ -40,7 +41,6 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [commentCount, setCommentCount] = useState(post.commentCount);
-  const [comments, setComments] = useState(post.comments || []);
   const [doubleTapHeart, setDoubleTapHeart] = useState({ visible: false, x: 0, y: 0 });
   const [shareCount, setShareCount] = useState(post.shareCount || 0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -89,8 +89,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
 
   useEffect(() => {
     setCommentCount(post.commentCount);
-    setComments(post.comments || []);
-  }, [post.commentCount, post.comments]);
+  }, [post.commentCount]);
 
   // Handle like fetcher completion
   useEffect(() => {
@@ -116,16 +115,8 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
     const handleNewComment = (data: any) => {
       console.log('[PostCard] Received comment:new', data);
       if (data.postId === post.id) {
-        // Check if comment already exists (prevent duplicates from optimistic update)
-        const exists = comments.some(c => c.id === data.comment.id);
-        if (exists) {
-          console.log('[PostCard] Comment already exists, skipping');
-          return;
-        }
-        
-        // Add to comments if it's a top-level comment
+        // If not viewing the thread, increment the preview count for top-level comments
         if (!data.comment.parentCommentId && !showCommentThread) {
-          setComments(prev => [...prev, data.comment]);
           setCommentCount(prev => prev + 1);
         }
       }
@@ -136,9 +127,6 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
       if (data.postId === post.id) {
         // Decrement comment count (backend handles total count including replies)
         setCommentCount(prev => Math.max(0, prev - 1));
-        
-        // Remove from preview
-        setComments(prev => prev.filter(c => c.id !== data.commentId));
       }
     };
 
@@ -302,54 +290,20 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
           />
         )}
 
-        {/* Comments Section - Expanded on demand */}
-        {showComments && showCommentThread && (
-          <div className="mt-4 pt-4 border-t border-default">
-            {/* Comments List */}
-            {comments && comments.length > 0 ? (
-              <CommentThread
-                postId={post.id}
-                comments={comments}
-                currentUserId={currentUserId}
-                hasMore={commentCount > comments.length}
-              />
-            ) : (
-              <>
-                {currentUserId && (
-                  <div className="mb-4">
-                    <CommentInput 
-                      postId={post.id}
-                      onSuccess={(data) => {
-                        if (data?.comment) {
-                          // Optimistically add comment at bottom
-                          setComments(prev => [...prev, data.comment]);
-                          setCommentCount(prev => prev + 1);
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-                {commentCount > 0 && (
-                  <p className="text-sm text-muted">Loading comments...</p>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Comments Preview - Collapsed view */}
-        {showComments && !showCommentThread && comments && comments.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-default">
-            <h3 className="text-sm font-semibold mb-3">Comments</h3>
-            <CommentPreview
+        {/* Comments open in a bottom sheet */}
+        <BottomSheet open={showCommentThread} onOpenChange={setShowCommentThread}>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Comments</h3>
+            <CommentThread
               postId={post.id}
-              comments={comments.slice(-3)}
+              comments={[]}
               currentUserId={currentUserId}
-              totalCommentCount={commentCount}
-              onViewMore={() => setShowCommentThread(true)}
+              hasMore={commentCount > 0}
+              isOpen={showCommentThread}
             />
           </div>
-        )}
+        </BottomSheet>
+        
       </CardContent>
 
       <ShareModal
