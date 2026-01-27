@@ -74,14 +74,28 @@ export function MessageBubble({ message, isCurrentUser, isMostRecent }: MessageB
 
   return (
     <>
-      <div className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[70%] rounded-lg px-4 py-2 ${
-          isCurrentUser
-            ? "bg-primary text-white shadow"
-            : "bg-secondary text-primary shadow"
-        }`}
-      >
+      <div className={`flex items-end ${isCurrentUser ? "justify-end" : "justify-start"}`}>
+        {/* Show sender avatar for other users so it's clear who sent the message.
+            Do not show the current user's avatar next to their own messages. */}
+        {!isCurrentUser && (
+          <div className="mr-3 flex-shrink-0">
+            {message.sender.profilePhotoUrl ? (
+              <img src={message.sender.profilePhotoUrl} alt={message.sender.displayName} className="h-8 w-8 rounded-full object-cover" />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-accent text-on-accent flex items-center justify-center text-xs">
+                {message.sender.displayName?.[0]?.toUpperCase()}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div
+          className={`max-w-[70%] rounded-lg px-4 py-2 ${
+            isCurrentUser
+              ? "bg-primary text-white shadow"
+              : "bg-secondary text-primary shadow"
+          }`}
+        >
         {/* Media attachments */}
         {message.mediaUrls.length > 0 && (
           <div className="mb-2 space-y-2">

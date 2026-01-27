@@ -27,36 +27,51 @@ export async function loader({ request, params }: any) {
     take: 1000,
   });
 
-  // If the user opened the chat and the newest message wasn't sent by them,
-  // mark that newest message as read by this user (deduplicating on DB side).
+  // When opening the group chat, mark all unread messages (those not already
+  // read by this user and not authored by this user) as read by adding this
+  // participant's id to each message's "readBy" array. This ensures counts
+  // and metrics are accurate while the UI continues to only display read
+  // indicators on the newest message.
   try {
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg && lastMsg.senderId !== userId) {
-      try {
-        await db.$executeRaw`UPDATE "GroupMessage" SET "readBy" = (
+    try {
+      await db.$executeRaw`
+        UPDATE "GroupMessage"
+        SET "readBy" = (
           SELECT ARRAY(SELECT DISTINCT unnest("readBy" || ARRAY[${userId}::text]))
-        ) WHERE "id" = ${lastMsg.id}`;
-      } catch (sqlErr) {
-        // Fallback: conservative update via Prisma API
-        try {
-          const current = await db.groupMessage.findUnique({ where: { id: lastMsg.id }, select: { readBy: true } });
-          const currentArr = current?.readBy || [];
-          if (!currentArr.includes(userId)) {
-            await db.groupMessage.update({ where: { id: lastMsg.id }, data: { readBy: { push: userId } } as any });
+        )
+        WHERE "groupChatId" = ${groupId}
+          AND NOT ("readBy" @> ARRAY[${userId}::text])
+          AND "senderId" != ${userId}
+      `;
+    } catch (sqlErr) {
+      // Fallback: fetch messages missing userId and update individually
+      try {
+        const toUpdate = await db.groupMessage.findMany({ where: { groupChatId: groupId, senderId: { not: userId }, readBy: { not: { has: userId } } as any }, select: { id: true, readBy: true } as any });
+        for (const m of toUpdate) {
+          const existing = m.readBy || [];
+          if (!existing.includes(userId)) {
+            await db.groupMessage.update({ where: { id: m.id }, data: { readBy: { push: userId } } as any });
           }
-        } catch (fallbackErr) {
-          console.error('Failed to mark last group message read on load:', fallbackErr);
         }
+      } catch (fallbackErr) {
+        console.error('Failed to bulk-mark group messages read on load:', fallbackErr);
       }
+    }
 
-      // Also update the in-memory messages so the loader returns the user as having read it.
-      if (Array.isArray(messages) && messages.length > 0) {
-        const idx = messages.length - 1;
-        messages[idx] = { ...messages[idx], readBy: Array.from(new Set([...(messages[idx].readBy || []), userId])) } as any;
+    // Update in-memory messages so the loader returns them as read by this user (IDs).
+    if (Array.isArray(messages) && messages.length > 0) {
+      for (let i = 0; i < messages.length; i++) {
+        const m: any = messages[i];
+        if (m.senderId !== userId) {
+          const readByIds: string[] = m.readBy || [];
+          if (!readByIds.includes(userId)) {
+            messages[i] = { ...m, readBy: [...(m.readBy || []), userId] } as any;
+          }
+        }
       }
     }
   } catch (err) {
-    console.error('Error while attempting to mark newest group message as read in loader:', err);
+    console.error('Error while attempting to mark group messages read in loader:', err);
   }
 
   // Load participant info

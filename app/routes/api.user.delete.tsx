@@ -1,10 +1,13 @@
-import { requireUserId, logout } from '~/lib/auth.server';
 import { db } from '~/lib/db.server';
 
 export async function action({ request }: any) {
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
   }
+
+  // Import server-only helpers inside the action so they are not pulled
+  // into client bundles during the build.
+  const { requireUserId } = await import('~/lib/auth.server');
 
   const userId = await requireUserId(request);
 

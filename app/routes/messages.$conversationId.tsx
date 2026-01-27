@@ -80,37 +80,43 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     },
   });
 
-  // Mark messages as read
-  // Mark the newest message as read by this user when loading the thread.
-  // Use a deduplicating SQL update to only set readAt if it's currently null
-  // and the recipient is this user, and the sender isn't the user.
+  // Mark all unread messages in this conversation as read for this user when loading the thread.
+  // We still only display read indicators on the newest message in the UI, but ensure
+  // audit/counting is accurate by marking every previously-unread message as read.
   try {
-    const newest = await db.message.findFirst({ where: { conversationId: conversation.id }, orderBy: { sentAt: 'desc' }, select: { id: true, senderId: true, recipientId: true, readAt: true } });
-    if (newest && newest.recipientId === userId && newest.senderId !== userId) {
+    try {
+      await db.$executeRaw`
+        UPDATE "Message"
+        SET "readAt" = NOW()
+        WHERE "conversationId" = ${conversation.id}
+          AND "recipientId" = ${userId}
+          AND "senderId" != ${userId}
+          AND "readAt" IS NULL
+      `;
+    } catch (sqlErr) {
+      // Fallback to Prisma API when raw update isn't allowed
       try {
-        await db.$executeRaw`UPDATE "Message" SET "readAt" = NOW() WHERE "id" = ${newest.id} AND "recipientId" = ${userId} AND "readAt" IS NULL AND "senderId" != ${userId}`;
-      } catch (sqlErr) {
-        // Fallback: conservative Prisma update
-        try {
-          const cur = await db.message.findUnique({ where: { id: newest.id }, select: { readAt: true, recipientId: true, senderId: true } });
-          if (cur && !cur.readAt && cur.recipientId === userId && cur.senderId !== userId) {
-            await db.message.update({ where: { id: newest.id }, data: { readAt: new Date() } });
-          }
-        } catch (fallbackErr) {
-          console.error('Failed to mark newest conversation message read on load:', fallbackErr);
-        }
+        await db.message.updateMany({
+          where: { conversationId: conversation.id, recipientId: userId, senderId: { not: userId }, readAt: null },
+          data: { readAt: new Date() },
+        });
+      } catch (fallbackErr) {
+        console.error('Failed to bulk-mark conversation messages read on load:', fallbackErr);
       }
+    }
 
-      // Also update displayMessages so the loader returns the message as read
-      if (Array.isArray(messages) && messages.length > 0) {
-        const idx = messages.findIndex((m: any) => m.id === newest.id);
-        if (idx !== -1) {
-          messages[idx] = { ...messages[idx], readAt: new Date() } as any;
+    // Update in-memory messages so the loader returns them as read
+    if (Array.isArray(messages) && messages.length > 0) {
+      const now = new Date();
+      for (let i = 0; i < messages.length; i++) {
+        const m: any = messages[i];
+        if (m.recipientId === userId && m.senderId !== userId && !m.readAt) {
+          messages[i] = { ...m, readAt: now } as any;
         }
       }
     }
   } catch (err) {
-    console.error('Error while attempting to mark newest conversation message as read in loader:', err);
+    console.error('Error while attempting to mark conversation messages read in loader:', err);
   }
 
   return { 
