@@ -139,7 +139,15 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 						</Link>
 
 						<Link to="/gear" className={`flex flex-col items-center justify-center space-y-1 ${location.pathname.startsWith("/gear") ? "text-accent" : "text-secondary"}`}>
-							<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16v2m8-10h2M2 12H4m15.364-6.364l1.414 1.414M4.222 19.778l1.414-1.414M18.364 18.364l1.414-1.414M4.222 4.222l1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+							<svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+								{/* Climbing rope: two parallel twisted strands with short cross marks to suggest braid */}
+								<path d="M3 6c4 0 4 6 8 6s4-6 8-6" />
+								<path d="M3 12c4 0 4-6 8-6s4 6 8 6" />
+								<path d="M6.5 7.5l1 1" strokeWidth={1.5} />
+								<path d="M9.5 6.5l1 1" strokeWidth={1.5} />
+								<path d="M12.5 7.5l1 1" strokeWidth={1.5} />
+								<path d="M15.5 6.5l1 1" strokeWidth={1.5} />
+							</svg>
 							<span className="text-xs font-medium">Gear</span>
 						</Link>
 

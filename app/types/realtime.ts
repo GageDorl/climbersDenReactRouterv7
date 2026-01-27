@@ -143,6 +143,18 @@ export interface GearAllClaimedPayload {
   gearItemId: string;
 }
 
+export interface GearClaimedPayload {
+  gearListId: string;
+  itemId: string;
+  itemName: string;
+  quantityNeeded: number;
+  quantityClaimed: number;
+  claimedByUsers: Array<{ id: string; displayName: string; profilePhotoUrl: string | null; quantity: number }>;
+  userId: string;
+}
+
+export interface GearUnclaimedPayload extends GearClaimedPayload {}
+
 // Post Like Events
 export interface PostLikePayload {
   postId: string;
@@ -183,6 +195,8 @@ export interface ServerToClientEvents {
   'notification:new': (payload: NotificationPayload) => void;
   'gear:updated': (payload: GearUpdatedPayload) => void;
   'gear:all-claimed': (payload: GearAllClaimedPayload) => void;
+  'gear:claimed': (payload: GearClaimedPayload) => void;
+  'gear:unclaimed': (payload: GearUnclaimedPayload) => void;
   'user:online': (payload: UserOnlinePayload) => void;
   'user:offline': (payload: UserOfflinePayload) => void;
   'group-message:new': (payload: GroupMessagePayload) => void;

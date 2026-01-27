@@ -1,6 +1,6 @@
 import type { Route } from "./+types/users.$userId.edit";
 import { redirect } from "react-router";
-import { Form, useNavigation } from "react-router";
+import { Form, useNavigation, useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -9,9 +9,10 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { getUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { profileSetupSchema } from "~/lib/validation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageCropper } from "~/components/posts/image-cropper";
 import { LocationSettings } from "~/components/location/location-settings";
+import { PageWrapper } from "~/components/ui/page-wrapper";
 
 // Utility function to compress an image file
 const compressImage = (file: File, maxSizeMB: number = 8, quality: number = 0.8): Promise<File> => {
@@ -187,6 +188,23 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
   const { user } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const deleteFetcher = useFetcher();
+
+  // Handle account deletion result
+  useEffect(() => {
+    if (deleteFetcher.data && (deleteFetcher.data as any).success) {
+      // After successful soft-delete, call logout action to clear session
+      (async () => {
+        try {
+          await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+        } catch (e) {
+          // ignore
+        }
+        // Redirect to home (session should be cleared)
+        window.location.href = '/';
+      })();
+    }
+  }, [deleteFetcher.data]);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(user.profilePhotoUrl || null);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperImage, setCropperImage] = useState('');
@@ -374,20 +392,6 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       } finally {
         setIsUploadingImage(false);
       }
-      setProfilePhotoUrl(user.profilePhotoUrl || '');
-      
-      // Better error messages based on error type
-      if (error instanceof Error) {
-        if (error.message.includes('File size too large')) {
-          alert('Image file is too large. Please try a smaller image or different format.');
-        } else if (error.message.includes('400')) {
-          alert('Upload failed - invalid image format or size. Please try a different image.');
-        } else {
-          alert('Upload failed: ' + error.message);
-        }
-      } else {
-        alert('Upload failed. Please try again.');
-      }
     } finally {
       setIsUploadingImage(false);
     }
@@ -400,8 +404,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
   };
 
   return (
-    <div className="min-h-screen py-8" style={{background: 'linear-gradient(to bottom, var(--surface), var(--background))'}}>
-      <div className="max-w-2xl mx-auto px-4">
+    <PageWrapper maxWidth="2xl" className="flex flex-col gap-2">
         <Card>
           <CardHeader>
             <CardTitle>Edit Profile</CardTitle>
@@ -584,7 +587,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
         />
 
         {/* Danger Zone: Delete Account */}
-        <Card className="mt-6">
+        <Card>
           <CardHeader>
             <CardTitle>Danger Zone</CardTitle>
             <CardDescription>Permanently delete your account and all associated data. This action cannot be undone.</CardDescription>
@@ -595,22 +598,23 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
                 <Button variant="destructive" className="w-full">Delete Account</Button>
               </DialogTrigger>
 
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-md flex flex-col items-center">
                 <DialogHeader>
                   <DialogTitle>Delete Account</DialogTitle>
                   <DialogDescription>This will permanently remove your account and cannot be undone. Are you sure?</DialogDescription>
                 </DialogHeader>
-                <div className="mt-6 flex justify-end space-x-2">
-                  <Form method="post" action="/api/user/delete">
+                <div className="mt-6 flex justify-center space-x-2">
+                  <deleteFetcher.Form method="post" action="/api/user/delete" className="flex flex-col items-center gap-2">
+                    <Button type="submit" variant="destructive" disabled={deleteFetcher.state === 'submitting'}>
+                      {deleteFetcher.state === 'submitting' ? 'Deleting...' : 'Yes, delete my account'}
+                    </Button>
                     <Button type="button" variant="outline" onClick={() => window.history.back()} className="mr-2">Cancel</Button>
-                    <Button type="submit" variant="destructive">Yes, delete my account</Button>
-                  </Form>
+                  </deleteFetcher.Form>
                 </div>
               </DialogContent>
             </Dialog>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </PageWrapper>
   );
 }

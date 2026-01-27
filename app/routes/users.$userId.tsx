@@ -1,6 +1,6 @@
 import type { Route } from "./+types/users.$userId";
 import { redirect } from "react-router";
-import { Link } from "react-router";
+import { Link, Form } from "react-router";
 import { db } from "~/lib/db.server";
 import { getUserId } from "~/lib/auth.server";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -31,6 +31,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       experienceLevel: true,
       locationCity: true,
       createdAt: true,
+      deletedAt: true,
       _count: {
         select: {
           posts: true,
@@ -54,6 +55,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("User not found", { status: 404 });
   }
 
+  if (user.deletedAt) {
+    return {
+      deletedUser: true,
+      displayName: user.displayName,
+    };
+  }
+
   const isOwnProfile = currentUserId === user.id;
   const isFollowing = user.followers.length > 0;
   // Does the profile user follow the current user? (so current user can "follow back")
@@ -73,13 +81,33 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export default function UserProfile({ loaderData }: Route.ComponentProps) {
+  const maybeDeleted = (loaderData as any).deletedUser;
+  if (maybeDeleted) {
+    const name = (loaderData as any).displayName || params.username;
+    return (
+      <PageWrapper maxWidth="4xl">
+        <Card>
+          <CardHeader>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-primary mb-4">{name}</h1>
+              <div className="p-6 bg-surface rounded-md text-center">
+                <h2 className="text-lg font-semibold mb-2">Account deleted</h2>
+                <p className="text-secondary">This account has been deleted.</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </PageWrapper>
+    );
+  }
+
   const { user, isOwnProfile, isFollowing, profileFollowsYou, followerCount, followingCount } = loaderData;
 
   return (
     <PageWrapper maxWidth="4xl">
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col md:flex-row gap-2 items-center md:items-start justify-between">
               <div className="flex items-center space-x-4">
                 {user.profilePhotoUrl ? (
                   <ClickableProfilePicture
@@ -102,9 +130,14 @@ export default function UserProfile({ loaderData }: Route.ComponentProps) {
               </div>
               <div className="flex gap-2">
                 {isOwnProfile ? (
-                  <Link to={`/users/${user.displayName}/edit`}>
-                    <Button variant="outline">Edit Profile</Button>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/users/${user.displayName}/edit`}>
+                      <Button variant="outline">Edit Profile</Button>
+                    </Link>
+                    <Form method="post" action="/auth/logout">
+                      <Button type="submit" variant="outline">Log Out</Button>
+                    </Form>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Link to={`/messages/new?to=${encodeURIComponent(user.displayName)}`}>

@@ -8,11 +8,21 @@ export async function action({ request }: any) {
 
   const userId = await requireUserId(request);
 
-  // Soft-delete the user by setting deletedAt so loaders exclude them
-  await db.user.update({ where: { id: userId }, data: { deletedAt: new Date() } });
+  try {
+    // Soft-delete the user by setting deletedAt so loaders exclude them
+    const updated = await db.user.update({ where: { id: userId }, data: { deletedAt: new Date() }, select: { id: true, deletedAt: true } });
 
-  // Destroy session and redirect to login
-  return logout(request);
+    if (!updated || !updated.deletedAt) {
+      console.error('Failed to mark user deleted for id:', userId);
+      return new Response(JSON.stringify({ error: 'Failed to delete account' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // Return success JSON; client will call logout to clear session
+    return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
+  } catch (err) {
+    console.error('Error deleting user account:', err);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
 }
 
 export async function loader() {

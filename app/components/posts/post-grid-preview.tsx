@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, FileText } from 'lucide-react';
 
 interface PostGridPreviewProps {
   postId: string;
@@ -19,7 +19,7 @@ export function PostGridPreview({
   return (
     <Link 
       to={`/posts/${postId}`}
-      className="group relative aspect-square overflow-hidden rounded-lg bg-secondary hover:shadow-lg transition-shadow"
+      className="group relative aspect-square overflow-hidden rounded-lg border-2 border-default bg-secondary hover:shadow-lg transition-shadow"
     >
       {mediaUrl ? (
         <img
@@ -28,11 +28,16 @@ export function PostGridPreview({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-surface" />
+        <div className="w-full h-full flex items-center justify-center bg-surface">
+          <div className="flex flex-col items-center gap-1">
+            <FileText className="w-10 h-10 text-muted" />
+            <span className="text-xs text-secondary">Text</span>
+          </div>
+        </div>
       )}
 
       {/* Overlay with stats */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="flex flex-col items-center gap-1">
           <Heart className="w-6 h-6 text-white fill-white" />
           <span className="text-white font-semibold text-sm">{likeCount}</span>

@@ -60,7 +60,6 @@ export function PostOptionsMenu({ postId, onShare, deleteAction, canDelete = fal
               <button
                 type="submit"
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary"
-                onClick={() => setOpen(false)}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete

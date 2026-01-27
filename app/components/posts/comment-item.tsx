@@ -4,6 +4,7 @@ import { Button } from '~/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { CommentInput } from './comment-input';
 import type { Comment, User } from '~/types/db';
+import { censorText } from '~/lib/censor';
 
 // Manual time ago function that works consistently on server and client
 function timeAgo(date: Date): string {
@@ -225,7 +226,7 @@ export function CommentItem({
                   </span>
                 </div>
                 <p className="text-sm text-primary wrap-break-word">
-                  {comment.textContent}
+                  {censorText(comment.textContent)}
                 </p>
 
                 {/* Long press menu for author */}

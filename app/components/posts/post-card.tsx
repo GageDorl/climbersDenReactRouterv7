@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { Card, CardContent, CardHeader, CardMedia } from '~/components/ui/card';
 import { PostEngagementFooter, CommentThread, ShareModal, PostOptionsMenu } from './index';
+import { censorText } from '~/lib/censor';
 import { BottomSheet } from '~/components/ui/bottom-sheet';
 import { DoubleTapHeart } from './double-tap-heart';
 import { useSocket } from '~/hooks/use-socket';
@@ -269,7 +270,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
       <CardContent>
         {post.textContent && (
           <p className="whitespace-pre-wrap text-primary mb-4">
-            {post.textContent}
+            {censorText(post.textContent)}
           </p>
         )}
 

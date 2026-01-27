@@ -25,6 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
               id: true,
               displayName: true,
               profilePhotoUrl: true,
+              deletedAt: true,
             },
           },
         },
@@ -49,6 +50,7 @@ export async function loader({ request }: Route.LoaderArgs) {
             id: true,
             displayName: true,
             profilePhotoUrl: true,
+            deletedAt: true,
           },
         }),
         db.message.count({
@@ -60,16 +62,23 @@ export async function loader({ request }: Route.LoaderArgs) {
         }),
       ]);
 
+      if (!otherParticipant || otherParticipant.deletedAt) return null;
+
+      const lastMessage = conversation.messages[0] || null;
+      // Hide last message if its sender was deleted
+      const safeLastMessage = lastMessage && lastMessage.sender && lastMessage.sender.deletedAt ? null : lastMessage;
+
       return {
         ...conversation,
         otherParticipant,
         unreadCount,
-        lastMessage: conversation.messages[0] || null,
+        lastMessage: safeLastMessage,
       };
     })
   );
 
-  return { conversations: conversationsWithDetails, userId };
+  // Filter out any null entries (conversations with deleted participants)
+  return { conversations: conversationsWithDetails.filter(Boolean), userId };
 }
 
 export default function MessagesIndex() {

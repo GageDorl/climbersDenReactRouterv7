@@ -58,8 +58,30 @@ export function CommentThread({
           return;
         }
         seenIdsRef.current.add(id);
-        // Newest comments are shown at the top
-        setComments((prev) => [data.comment, ...prev]);
+        // If this is a reply, insert it under its parent comment recursively
+        if (data.comment.parentCommentId) {
+          const parentId = data.comment.parentCommentId as string;
+          setComments((prev) => {
+            const addReplyRec = (items: typeof prev): typeof prev => {
+              return items.map((c) => {
+                if (c.id === parentId) {
+                  const existing = c.replies || [];
+                  // avoid duplicate replies
+                  if (existing.some(r => r.id === id)) return c;
+                  return { ...c, replies: [...existing, data.comment] } as typeof c;
+                }
+                if (c.replies) {
+                  return { ...c, replies: addReplyRec(c.replies) } as typeof c;
+                }
+                return c;
+              });
+            };
+            return addReplyRec(prev);
+          });
+        } else {
+          // Newest top-level comments are shown at the top
+          setComments((prev) => [data.comment, ...prev]);
+        }
       }
     };
 

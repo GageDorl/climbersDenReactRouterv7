@@ -116,7 +116,7 @@ export async function action({ params, request }: any) {
     const claimedByUsers = users.map(u => ({ id: u.id, displayName: u.displayName, profilePhotoUrl: u.profilePhotoUrl, quantity: counts[u.id] || 0 }));
 
     // Emit real-time event to gear room with richer payload
-    emitToGearList(gearListId, 'gear:claimed', {
+    emitToGearList(gearListId, 'gear:claimed' as keyof import('~/types/realtime').ServerToClientEvents, {
       gearListId,
       itemId: (updatedItem as any).id,
       itemName: (updatedItem as any).itemName,

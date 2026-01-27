@@ -1,9 +1,10 @@
 interface PageWrapperProps {
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '7xl';
+  className?: string;
 }
 
-export function PageWrapper({ children, maxWidth = '2xl' }: PageWrapperProps) {
+export function PageWrapper({ children, maxWidth = '2xl', className = '' }: PageWrapperProps) {
   const maxWidthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -15,8 +16,8 @@ export function PageWrapper({ children, maxWidth = '2xl' }: PageWrapperProps) {
   };
 
   return (
-    <div className="min-h-screen bg-surface py-8 pb-16 sm:pb-8">
-      <div className={`w-full ${maxWidthClasses[maxWidth]} mx-auto px-4 `}>
+    <div className={`min-h-screen bg-surface py-8 pb-20 md:pb-8 `}>
+      <div className={`w-full ${maxWidthClasses[maxWidth]} mx-auto px-4 ${className}`}>
         {children}
       </div>
     </div>

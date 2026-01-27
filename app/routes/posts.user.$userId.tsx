@@ -19,11 +19,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Verify the user exists
   const user = await db.user.findUnique({
     where: { id: targetUserId },
-    select: { displayName: true },
+    select: { displayName: true, deletedAt: true },
   });
 
   if (!user) {
     throw new Response('User not found', { status: 404 });
+  }
+
+  if (user.deletedAt) {
+    return {
+      deletedUser: true,
+      targetUsername: user.displayName,
+      currentUserId,
+    };
   }
 
   const url = new URL(request.url);
@@ -63,6 +71,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
               id: true,
               displayName: true,
               profilePhotoUrl: true,
+                deletedAt: true,
             },
           },
           replies: {
@@ -75,6 +84,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
                   id: true,
                   displayName: true,
                   profilePhotoUrl: true,
+                    deletedAt: true,
                 },
               },
             },
@@ -98,7 +108,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ...post,
       isLikedByCurrentUser: post.likes.length > 0,
       likeCount: post._count.likes,
-      comments: post.comments,
+      comments: (post.comments || []).filter((c: any) => !(c.user && c.user.deletedAt)).map((c: any) => ({
+        ...c,
+        replies: (c.replies || []).filter((r: any) => !(r.user && r.user.deletedAt)),
+      })),
     })),
     nextCursor,
     hasMore,
@@ -108,7 +121,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function UserPostsPage({ loaderData, params }: { loaderData: Awaited<ReturnType<typeof loader>>; params: Record<string, string> }) {
-  const { posts, nextCursor, hasMore, currentUserId, targetUsername } = loaderData;
+  const { posts, nextCursor, hasMore, currentUserId, targetUsername, deletedUser } = loaderData;
+
+  if (deletedUser) {
+    return (
+      <PageWrapper>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-primary mb-6">{targetUsername}</h1>
+          <div className="p-6 bg-surface rounded-md text-center">
+            <h2 className="text-lg font-semibold mb-2">Account deleted</h2>
+            <p className="text-secondary">This account has been deleted and its posts are no longer available.</p>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>

@@ -31,7 +31,7 @@ export function CragsMapSection({
         </h2>
         <Card className="p-6 bg-secondary border-default">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-primary" />
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-primary" />
             <div className="flex-1">
               <h3 className="font-semibold text-primary mb-1">Enable Location to See Crags Near You</h3>
               <p className="text-sm text-muted mb-4">
@@ -57,7 +57,7 @@ export function CragsMapSection({
         Nearby Climbing Areas
       </h2>
       <Card className="p-6 bg-surface border-default">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 items-center justify-between">
           <div>
             <h3 className="font-semibold text-primary mb-1">
               Browse Climbing Areas Near You

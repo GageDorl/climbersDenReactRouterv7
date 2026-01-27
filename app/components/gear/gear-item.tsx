@@ -97,12 +97,12 @@ export default function GearItem({ item, gearListId, currentUserId }: Props) {
       setInputValue(newOwn > 0 ? String(newOwn) : '');
     };
 
-    socket.on('gear:claimed', onClaimed);
-    socket.on('gear:unclaimed', onUnclaimed);
+    socket.on('gear:claimed' as any, onClaimed);
+    socket.on('gear:unclaimed' as any, onUnclaimed);
 
     return () => {
-      socket.off('gear:claimed', onClaimed);
-      socket.off('gear:unclaimed', onUnclaimed);
+      socket.off('gear:claimed' as any, onClaimed);
+      socket.off('gear:unclaimed' as any, onUnclaimed);
     };
   }, [socket, item.id, currentUserId]);
 

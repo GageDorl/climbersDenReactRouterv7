@@ -46,6 +46,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
           id: true,
           displayName: true,
           profilePhotoUrl: true,
+          deletedAt: true,
         },
       },
     },
@@ -55,7 +56,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const paginatedMessages = hasMore ? messages.slice(0, MESSAGES_PER_PAGE) : messages;
   
   // Reverse the messages so oldest appears at top, newest at bottom for display
-  const displayMessages = paginatedMessages.reverse();
+  // Filter out messages authored by users who have been soft-deleted
+  const displayMessages = paginatedMessages.reverse().filter((m: any) => !(m.sender && m.sender.deletedAt));
   
   // Use the oldest message's sentAt as the cursor for loading even older messages
   // The cursor should be the oldest message we're actually returning (not the extra one)
@@ -74,6 +76,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       id: true,
       displayName: true,
       profilePhotoUrl: true,
+      deletedAt: true,
     },
   });
 
@@ -193,6 +196,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           id: true,
           displayName: true,
           profilePhotoUrl: true,
+          deletedAt: true,
         },
       },
     },
@@ -374,25 +378,37 @@ export default function ConversationThread({ params }: Route.ComponentProps) {
           </Link>
 
           {otherParticipant && (
-            <div className="flex items-center space-x-3">
-              {otherParticipant.profilePhotoUrl ? (
-                <img
-                  src={otherParticipant.profilePhotoUrl}
-                  alt={otherParticipant.displayName}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
+            otherParticipant.deletedAt ? (
+              <div className="flex items-center space-x-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full text-white" style={{backgroundColor: 'var(--primary-color)'}}>
                   {otherParticipant.displayName[0].toUpperCase()}
                 </div>
-              )}
-              <Link
-                to={`/users/${otherParticipant.displayName}`}
-                className="text-lg font-semibold text-primary hover:opacity-80"
-              >
-                {otherParticipant.displayName}
-              </Link>
-            </div>
+                <div>
+                  <div className="text-lg font-semibold text-primary">{otherParticipant.displayName}</div>
+                  <div className="text-sm text-secondary">Account deleted</div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                {otherParticipant.profilePhotoUrl ? (
+                  <img
+                    src={otherParticipant.profilePhotoUrl}
+                    alt={otherParticipant.displayName}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full text-white" style={{backgroundColor: 'var(--primary-color)'}}>
+                    {otherParticipant.displayName[0].toUpperCase()}
+                  </div>
+                )}
+                <Link
+                  to={`/users/${otherParticipant.displayName}`}
+                  className="text-lg font-semibold text-primary hover:opacity-80"
+                >
+                  {otherParticipant.displayName}
+                </Link>
+              </div>
+            )
           )}
         </div>
       </div>

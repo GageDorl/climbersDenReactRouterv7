@@ -78,7 +78,7 @@ export function NearbyUsersSection({
         <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
         <Card className="p-6 border-default bg-surface">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-primary" />
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-primary" />
             <div className="flex-1">
               <h3 className="font-semibold mb-1 text-primary">Enable Location to See Nearby Climbers</h3>
               <p className="text-sm mb-4 text-muted">
@@ -117,7 +117,7 @@ export function NearbyUsersSection({
         <h2 className="text-xl font-semibold text-primary">Discover Nearby Climbers</h2>
         <Card className="p-6 alert-destructive">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-white flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-white shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-white">Error Loading Nearby Climbers</h3>
               <p className="text-sm text-white">{error}</p>

@@ -1,5 +1,6 @@
 import { ImageModal, useImageModal } from '~/components/ui/image-modal';
 import { VideoModal, useVideoModal } from '~/components/ui/video-modal';
+import { FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -125,7 +126,10 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
                     <img src={postPreview.mediaUrls[0]} alt="Post preview" className="h-16 w-16 rounded object-cover" />
                   ) : (
                     <div className="h-16 w-16 rounded bg-gray-200 flex items-center justify-center text-sm text-muted">
-                      {postPreview.caption ? postPreview.caption.slice(0, 40) : 'Post'}
+                      <div className="flex flex-col items-center">
+                        <FileText className="w-6 h-6 text-muted" />
+                        <span className="text-xs text-secondary">Text</span>
+                      </div>
                     </div>
                   )}
                   <div className="flex-1">
@@ -137,7 +141,7 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
                 </div>
               </div>
               {remainderText && (
-                <p className="whitespace-pre-wrap break-words text-sm mt-2 line-clamp-2">{remainderText}</p>
+                <p className="whitespace-pre-wrap wrap-break-word text-sm mt-2 line-clamp-2">{remainderText}</p>
               )}
             </>
           ) : (
@@ -163,7 +167,7 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
         ) : (
           // Text content
           message.textContent && (
-            <p className="whitespace-pre-wrap break-words text-sm">
+            <p className="whitespace-pre-wrap wrap-break-word text-sm">
               {message.textContent}
             </p>
           )

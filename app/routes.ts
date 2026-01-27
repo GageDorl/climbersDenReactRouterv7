@@ -39,6 +39,7 @@ export default [
   
   // API routes
   route("api/user/location", "routes/api.user.location.tsx"),
+  route("api/user/delete", "routes/api.user.delete.tsx"),
   route("api/users/nearby", "routes/api.users.nearby.tsx"),
   route("api/users/search", "routes/api.users.search.tsx"),
   route("api/users/:userId/follow", "routes/api.users.$userId.follow.tsx"),

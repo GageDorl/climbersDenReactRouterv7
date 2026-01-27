@@ -361,7 +361,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex-shrink-0 rounded-lg p-2 text-secondary hover:bg-surface hover:text-primary"
+          className="shrink-0 rounded-lg p-2 text-secondary hover:bg-surface hover:text-primary"
           aria-label="Attach media"
         >
           <svg
@@ -385,12 +385,15 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
               <div className="mb-2 cursor-pointer rounded border border-default p-2 bg-surface" onClick={() => navigate(`/posts/${postPreview.id}`)}>
                 <div className="flex items-center space-x-3">
                   {postPreview.mediaUrls && postPreview.mediaUrls[0] ? (
-                    <img src={postPreview.mediaUrls[0]} alt="Preview" className="h-12 w-12 rounded object-cover" />
-                  ) : (
-                      <div className="h-12 w-12 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">
-                        {postPreview.caption ? postPreview.caption.slice(0, 30) : 'Post'}
-                      </div>
-                  )}
+                          <img src={postPreview.mediaUrls[0]} alt="Preview" className="h-12 w-12 rounded object-cover" />
+                        ) : (
+                            <div className="h-12 w-12 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">
+                              <div className="flex flex-col items-center">
+                                <svg className="w-5 h-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path><path d="M17 3v8"></path><path d="M7 7h6"></path></svg>
+                                <span className="text-xs text-secondary">Text</span>
+                              </div>
+                            </div>
+                        )}
                   <div className="flex-1">
                     <p className="text-sm font-medium text-primary">{postPreview.user?.displayName || 'Shared post'}</p>
                       <p className="text-sm text-muted truncate">{postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}</p>
@@ -416,7 +419,7 @@ export function MessageInput({ conversationId, onMediaSelect, onSendMessage, onT
         <button
           type="submit"
           disabled={!textContent.trim() && selectedFiles.length === 0 && !isPostShare}
-          className="btn-primary flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary shrink-0 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send
         </button>

@@ -30,6 +30,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     where: {
       userId: { in: followedUserIds },
       ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+      // Exclude posts whose author has been soft-deleted
+      user: { deletedAt: null },
     },
     take: limit,
     orderBy: { createdAt: 'desc' },
@@ -58,6 +60,7 @@ export async function loader({ request }: Route.LoaderArgs) {
               id: true,
               displayName: true,
               profilePhotoUrl: true,
+                deletedAt: true,
             },
           },
           replies: {
@@ -70,6 +73,7 @@ export async function loader({ request }: Route.LoaderArgs) {
                   id: true,
                   displayName: true,
                   profilePhotoUrl: true,
+                    deletedAt: true,
                 },
               },
             },
@@ -93,7 +97,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       ...post,
       isLikedByCurrentUser: post.likes.length > 0,
       likeCount: post._count.likes,
-      comments: post.comments,
+      comments: (post.comments || []).filter((c: any) => !(c.user && c.user.deletedAt)).map((c: any) => ({
+        ...c,
+        replies: (c.replies || []).filter((r: any) => !(r.user && r.user.deletedAt)),
+      })),
     })),
     nextCursor,
     hasMore,

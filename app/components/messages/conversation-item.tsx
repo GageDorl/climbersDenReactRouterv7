@@ -60,7 +60,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
     >
       <div className="flex items-start space-x-4">
         {/* Avatar */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {conversation.otherParticipant.profilePhotoUrl ? (
             <img
               src={conversation.otherParticipant.profilePhotoUrl}
@@ -99,10 +99,15 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
               postPreview ? (
                 <div className="mt-1 flex items-center space-x-2">
                   {postPreview.mediaUrls && postPreview.mediaUrls[0] ? (
-                    <img src={postPreview.mediaUrls[0]} alt="preview" className="h-8 w-8 rounded object-cover" />
-                  ) : (
-                    <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">Post</div>
-                  )}
+                        <img src={postPreview.mediaUrls[0]} alt="preview" className="h-8 w-8 rounded object-cover" />
+                      ) : (
+                        <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs text-muted">
+                          <div className="flex flex-col items-center">
+                            <svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path><path d="M17 3v8"></path><path d="M7 7h6"></path></svg>
+                            <span className="text-[10px] text-secondary">Text</span>
+                          </div>
+                        </div>
+                      )}
                   <div className="truncate text-sm text-secondary line-clamp-2">
                     {isFromCurrentUser && "You: "}
                     {postPreview.textContent ? postPreview.textContent : (postPreview.caption || 'View post')}
@@ -124,7 +129,7 @@ export function ConversationItem({ conversation, currentUserId }: ConversationIt
 
         {/* Unread Badge */}
         {conversation.unreadCount > 0 && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <span className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold badge-primary">
               {conversation.unreadCount}
             </span>
