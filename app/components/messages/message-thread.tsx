@@ -26,14 +26,36 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollHeight = useRef<number>(0);
   const shouldScrollToBottom = useRef<boolean>(true);
+  const initialMountRef = useRef<boolean>(true);
 
-  // Scroll to bottom only for new messages, not when loading older ones
+  // Scroll behavior:
+  // - On initial mount, snap to bottom once (no smooth animation).
+  // - For subsequent message updates, auto-scroll only if user is near the bottom.
+  // - When loading older messages (shouldScrollToBottom === false), keep scroll position stable.
   useEffect(() => {
+    const container = messagesContainerRef.current;
+
+    if (initialMountRef.current) {
+      // Jump to bottom on first mount without smooth behavior to avoid visual jank
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      initialMountRef.current = false;
+      prevScrollHeight.current = container?.scrollHeight || 0;
+      shouldScrollToBottom.current = true;
+      return;
+    }
+
     if (shouldScrollToBottom.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Only auto-scroll if the user is already near the bottom (within 200px)
+      if (container) {
+        const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+        if (distanceFromBottom <= 200) {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
     } else {
       // Maintain scroll position when loading older messages
-      const container = messagesContainerRef.current;
       if (container) {
         const newScrollHeight = container.scrollHeight;
         const scrollDiff = newScrollHeight - prevScrollHeight.current;
@@ -41,6 +63,7 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
         prevScrollHeight.current = newScrollHeight;
       }
     }
+
     shouldScrollToBottom.current = true;
   }, [messages]);
 

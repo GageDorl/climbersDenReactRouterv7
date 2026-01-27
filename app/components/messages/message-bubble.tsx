@@ -223,8 +223,8 @@ export function MessageBubble({ message, isCurrentUser, isMostRecent }: MessageB
             }
           })()}
         </p>
-        {/* Read indicators for most recent messages */}
-        {isMostRecent && (
+        {/* Read indicators for most recent messages — only visible to the sender */}
+        {isMostRecent && isCurrentUser && (
           <div className="mt-1 flex items-center space-x-2">
             {message.readBy && message.readBy.length > 0 ? (
               <div className="flex items-center space-x-2">
@@ -241,7 +241,7 @@ export function MessageBubble({ message, isCurrentUser, isMostRecent }: MessageB
                 <div className="text-xs text-primary ml-2">Read by {message.readBy.length}</div>
               </div>
             ) : (
-              isCurrentUser && (message as any).readAt ? (
+              (message as any).readAt ? (
                 <div className="text-xs text-primary">Read</div>
               ) : null
             )}
