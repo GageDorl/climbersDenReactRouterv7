@@ -118,7 +118,7 @@ export function CreatePostForm() {
         throw new Error('Failed to get upload signature');
       }
 
-      const { signature, timestamp, apiKey, cloudName, folder: signedFolder } = await configResponse.json();
+      const { signature, timestamp, apiKey, cloudName, folder: signedFolder, quality } = await configResponse.json();
       console.log('Got signature, cloudName:', cloudName);
 
       // Prepare FormData with exactly the parameters that were signed
@@ -128,6 +128,7 @@ export function CreatePostForm() {
       uploadFormData.append('signature', signature);
       uploadFormData.append('api_key', apiKey);
       uploadFormData.append('folder', signedFolder);
+      if (quality) uploadFormData.append('quality', quality);
 
       // Upload to Cloudinary
       const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;

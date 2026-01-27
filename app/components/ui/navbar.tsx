@@ -2,6 +2,7 @@ import { Link, useLocation, useRevalidator } from "react-router";
 import { useEffect } from "react";
 import { Button } from "./button";
 import { useSocket } from "~/hooks/use-socket";
+import { Backpack, Home } from "lucide-react";
 
 interface NavbarProps {
 	userId?: string;
@@ -68,7 +69,7 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 								<div className="hidden sm:flex sm:items-center sm:space-x-1">
 									<Link to="/posts">
 										<Button variant={location.pathname.startsWith("/posts") ? "default" : "ghost"} size="sm">
-											Feed
+											Home
 										</Button>
 									</Link>
 									<Link to="/discover">
@@ -129,8 +130,8 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 				<nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-default bg-surface sm:hidden">
 					<div className="flex h-16 items-center justify-around px-4">
 						<Link to="/posts" className={`flex flex-col items-center justify-center space-y-1 ${location.pathname.startsWith("/posts") ? "text-accent" : "text-secondary"}`}>
-							<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-							<span className="text-xs font-medium">Feed</span>
+							<Home className="h-6 w-6" />
+							<span className="text-xs font-medium">Home</span>
 						</Link>
 
 						<Link to="/discover" className={`flex flex-col items-center justify-center space-y-1 ${location.pathname === "/discover" ? "text-accent" : "text-secondary"}`}>
@@ -144,15 +145,7 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 						</Link>
 
 						<Link to="/gear" className={`flex flex-col items-center justify-center space-y-1 ${location.pathname.startsWith("/gear") ? "text-accent" : "text-secondary"}`}>
-							<svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-								{/* Climbing rope: two parallel twisted strands with short cross marks to suggest braid */}
-								<path d="M3 6c4 0 4 6 8 6s4-6 8-6" />
-								<path d="M3 12c4 0 4-6 8-6s4 6 8 6" />
-								<path d="M6.5 7.5l1 1" strokeWidth={1.5} />
-								<path d="M9.5 6.5l1 1" strokeWidth={1.5} />
-								<path d="M12.5 7.5l1 1" strokeWidth={1.5} />
-								<path d="M15.5 6.5l1 1" strokeWidth={1.5} />
-							</svg>
+							<Backpack className="h-6 w-6" />
 							<span className="text-xs font-medium">Gear</span>
 						</Link>
 

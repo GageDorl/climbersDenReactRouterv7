@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "~/components/ui/dialog";
 import { getUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
+import { deleteFromCloudinary } from '~/lib/cloudinary.server';
 import { profileSetupSchema } from "~/lib/validation";
 import { useState, useEffect } from "react";
 import { ImageCropper } from "~/components/posts/image-cropper";
@@ -121,7 +122,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   // Find user by displayName
   const user = await db.user.findUnique({
     where: { displayName: username },
-    select: { id: true },
+    select: { id: true, profilePhotoUrl: true },
   });
 
   if (!user || user.id !== currentUserId) {
@@ -174,6 +175,33 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (profilePhotoUrl) {
     updateData.profilePhotoUrl = profilePhotoUrl;
+  }
+
+  // If replacing an existing profile photo, attempt to delete the old one from Cloudinary
+  try {
+    const oldUrl = user.profilePhotoUrl as string | null;
+    if (oldUrl && profilePhotoUrl && oldUrl !== profilePhotoUrl) {
+      // Extract public id from Cloudinary URL: take path after '/upload/', remove version segment, strip extension
+      try {
+        const parsed = new URL(oldUrl);
+        const uploadIndex = parsed.pathname.indexOf('/upload/');
+        if (uploadIndex !== -1) {
+          let remainder = parsed.pathname.slice(uploadIndex + '/upload/'.length);
+          // remove leading version segment like v12345/
+          remainder = remainder.replace(/^v\d+\//, '');
+          // strip extension
+          const lastDot = remainder.lastIndexOf('.');
+          const publicId = lastDot !== -1 ? remainder.slice(0, lastDot) : remainder;
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to delete old Cloudinary profile image:', e);
+      }
+    }
+  } catch (e) {
+    console.warn('Error during Cloudinary old-image cleanup:', e);
   }
 
   await db.user.update({
@@ -235,7 +263,7 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       const config = await configResponse.json();
       console.log('Upload signature response:', config);
       
-      const { signature, timestamp, apiKey, cloudName, folder } = config;
+      const { signature, timestamp, apiKey, cloudName, folder, quality, transformation } = config as any;
 
       // Prepare FormData with exactly the parameters that were signed
       const uploadFormData = new FormData();
@@ -244,6 +272,8 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
       uploadFormData.append('signature', signature);
       uploadFormData.append('api_key', apiKey);
       uploadFormData.append('folder', folder);
+      if (quality) uploadFormData.append('quality', quality as string);
+      if (transformation) uploadFormData.append('transformation', transformation as string);
 
       // Log form data for debugging
       console.log('Upload form data prepared with:');

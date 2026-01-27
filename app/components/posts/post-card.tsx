@@ -235,9 +235,10 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                     return (
                         <video
                         key={index}
-                        src={url}
-                        controls
-                        className="w-full"
+                    src={url}
+                    controls
+                    preload="auto"
+                    className="w-full"
                         />
                     );
                 }
@@ -255,6 +256,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                         src={url}
                         alt={`Post media ${index + 1}`}
                         className="w-full object-cover aspect-square"
+                        fetchPriority="high"
                       />
                     </div>
                 );

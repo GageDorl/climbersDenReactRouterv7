@@ -133,15 +133,17 @@ export default function ProfileSetup({ actionData }: Route.ComponentProps) {
         throw new Error('Failed to get upload signature');
       }
 
-      const { signature, timestamp, apiKey, cloudName, folder } = await configResponse.json();
 
-      // Prepare FormData with exactly the parameters that were signed
+      // Parse signed config and prepare FormData with exactly the parameters that were signed
+      const { signature, timestamp, apiKey, cloudName, folder, quality, transformation } = await configResponse.json();
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('timestamp', timestamp.toString());
       uploadFormData.append('signature', signature);
       uploadFormData.append('api_key', apiKey);
       uploadFormData.append('folder', folder);
+      if (quality) uploadFormData.append('quality', quality);
+      if (transformation) uploadFormData.append('transformation', transformation);
 
       // Upload to Cloudinary
       const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;

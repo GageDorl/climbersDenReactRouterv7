@@ -20,15 +20,23 @@ export interface UploadOptions {
 export async function generateUploadSignature(
   folder: string,
   preset: 'profile' | 'post' | 'journal' = 'post'
-): Promise<{ signature: string; timestamp: number; apiKey: string; cloudName: string; folder: string }> {
+): Promise<{ signature: string; timestamp: number; apiKey: string; cloudName: string; folder: string; quality: string; transformation?: string }> {
   const timestamp = Math.round(new Date().getTime() / 1000);
+
+  // Decide quality based on preset: profile -> auto:low, others -> auto:good
+  const quality = preset === 'profile' ? 'auto:low' : 'auto:good';
+
+  // For profile uploads, include a resize transformation to 800px width
+  const transformation = preset === 'profile' ? JSON.stringify([{ width: 800, crop: 'scale' }]) : undefined;
 
   // Include only the parameters that will be sent by the client
   // No upload_preset needed for signed uploads - the signature authorizes
-  const params = {
+  const params: any = {
     timestamp,
     folder,
+    quality,
   };
+  if (transformation) params.transformation = transformation;
 
   const signature = cloudinary.utils.api_sign_request(
     params,
@@ -41,6 +49,8 @@ export async function generateUploadSignature(
     apiKey: process.env.CLOUDINARY_API_KEY!,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
     folder,
+    quality,
+    transformation,
   };
 }
 
@@ -79,8 +89,12 @@ export async function uploadFileToCloudinary(
   
   // Apply image optimization transformations
   if (isImage) {
+    const quality = folder && folder.toLowerCase().includes('profile') ? 'auto:low' : 'auto:good';
+    const isProfile = folder && folder.toLowerCase().includes('profile');
     options.transformation = [
-      { quality: 'auto:good' }, // Automatic quality optimization
+      // If profile image, scale to 800px width first
+      ...(isProfile ? [{ width: 800, crop: 'scale' }] : []),
+      { quality }, // Automatic quality optimization
       { fetch_format: 'auto' }, // Automatic format conversion (WebP, AVIF)
       { flags: 'progressive' }, // Progressive loading
     ];
@@ -88,8 +102,11 @@ export async function uploadFileToCloudinary(
   
   // Apply video optimizations
   if (isVideo) {
+    const quality = folder && folder.toLowerCase().includes('profile') ? 'auto:low' : 'auto:good';
+    const isProfile = folder && folder.toLowerCase().includes('profile');
     options.transformation = [
-      { quality: 'auto:good' },
+      ...(isProfile ? [{ width: 800, crop: 'scale' }] : []),
+      { quality },
       { video_codec: 'auto' },
     ];
     // Generate thumbnail for video
