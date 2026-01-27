@@ -12,6 +12,8 @@ interface MessageThreadProps {
       displayName: string;
       profilePhotoUrl: string | null;
     };
+    readAt?: Date | null;
+    readBy?: Array<{ id: string; displayName: string; profilePhotoUrl?: string | null }>;
   }>;
   currentUserId: string;
   onLoadOlder?: () => void;
@@ -105,11 +107,12 @@ export function MessageThread({ messages, currentUserId, onLoadOlder, hasMore, i
             </div>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map((message, idx) => (
             <MessageBubble
               key={message.id}
               message={message}
               isCurrentUser={message.sender.id === currentUserId}
+              isMostRecent={idx === messages.length - 1}
             />
           ))
         )}

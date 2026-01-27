@@ -15,11 +15,14 @@ interface MessageBubbleProps {
       displayName: string;
       profilePhotoUrl: string | null;
     };
+    readAt?: Date | null;
+    readBy?: Array<{ id: string; displayName: string; profilePhotoUrl?: string | null }>;
   };
   isCurrentUser: boolean;
+  isMostRecent?: boolean;
 }
 
-export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
+export function MessageBubble({ message, isCurrentUser, isMostRecent }: MessageBubbleProps) {
   const [isPostShare, setIsPostShare] = useState(false);
   const [postPreview, setPostPreview] = useState<any | null>(null);
   const [remainderText, setRemainderText] = useState<string | null>(null);
@@ -206,6 +209,30 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
             }
           })()}
         </p>
+        {/* Read indicators for most recent messages */}
+        {isMostRecent && (
+          <div className="mt-1 flex items-center space-x-2">
+            {message.readBy && message.readBy.length > 0 ? (
+              <div className="flex items-center space-x-2">
+                {message.readBy.slice(0, 5).map((p) => (
+                  p.profilePhotoUrl ? (
+                    <img key={p.id} src={p.profilePhotoUrl} alt={p.displayName} title={p.displayName} className="h-6 w-6 rounded-full ring-2 ring-surface" />
+                  ) : (
+                    <div key={p.id} title={p.displayName} className="h-6 w-6 rounded-full bg-accent text-white flex items-center justify-center text-xs ring-2 ring-surface">{p.displayName[0].toUpperCase()}</div>
+                  )
+                ))}
+                {message.readBy.length > 5 && (
+                  <div className="h-6 w-6 rounded-full bg-muted text-xs flex items-center justify-center ring-2 ring-surface">+{message.readBy.length - 5}</div>
+                )}
+                <div className="text-xs text-primary ml-2">Read by {message.readBy.length}</div>
+              </div>
+            ) : (
+              isCurrentUser && (message as any).readAt ? (
+                <div className="text-xs text-primary">Read</div>
+              ) : null
+            )}
+          </div>
+        )}
       </div>
     </div>
     

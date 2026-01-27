@@ -47,6 +47,7 @@ model User {
   blocksReceived       Block[]               @relation("BlocksReceived")
   groupChatsCreated    GroupChat[]
   groupMessagesSent    GroupMessage[]
+  groupChatParticipations GroupChatParticipant[]
   cragSubmissions      CragSubmission[]
   passwordResetTokens  PasswordResetToken[]
 
@@ -228,6 +229,8 @@ model GroupChat {
   // Relationships
   creator  User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   messages GroupMessage[]
+  participants GroupChatParticipant[]
+  gearLists GearList[]
 
   @@index([lastMessageAt(sort: Desc)])
   @@map("group_chats")
@@ -239,6 +242,7 @@ model GroupMessage {
   senderId    String
   textContent String?
   mediaUrls   String[]
+  readBy      String[]  @default([])
   sentAt      DateTime @default(now())
 
   // Relationships
@@ -247,6 +251,24 @@ model GroupMessage {
 
   @@index([groupChatId, sentAt])
   @@map("group_messages")
+}
+
+model GroupChatParticipant {
+  id            String   @id @default(uuid())
+  groupChatId   String
+  participantId String
+  lastReadAt    DateTime?
+  muted         Boolean  @default(false)
+  joinedAt      DateTime @default(now())
+
+  // Relationships
+  groupChat   GroupChat @relation(fields: [groupChatId], references: [id], onDelete: Cascade)
+  participant User      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([groupChatId, participantId])
+  @@index([participantId])
+  @@index([groupChatId])
+  @@map("group_chat_participants")
 }
 
 model Crag {
@@ -399,6 +421,7 @@ model GearList {
   description    String?    @db.Text
   tripDate       DateTime?
   participantIds String[]
+  groupId        String?
   archived       Boolean    @default(false)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -406,6 +429,7 @@ model GearList {
   // Relationships
   creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   gearItems GearItem[]
+  group     GroupChat? @relation(fields: [groupId], references: [id])
 
   @@index([creatorId, archived, tripDate])
   @@map("gear_lists")

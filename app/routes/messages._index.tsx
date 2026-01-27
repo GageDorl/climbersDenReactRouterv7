@@ -78,11 +78,75 @@ export async function loader({ request }: Route.LoaderArgs) {
   );
 
   // Filter out any null entries (conversations with deleted participants)
-  return { conversations: conversationsWithDetails.filter(Boolean), userId };
+  const convoList = conversationsWithDetails.filter(Boolean);
+
+  // Also load group chats where the user is a participant
+  const groups = await db.groupChat.findMany({
+    where: { participantIds: { has: userId } },
+    orderBy: { lastMessageAt: 'desc' },
+    include: {
+      messages: { orderBy: { sentAt: 'desc' }, take: 1, include: { sender: { select: { id: true, displayName: true, profilePhotoUrl: true } } } },
+    },
+  });
+
+  const groupItems = groups.map((g: any) => ({
+    id: g.id,
+    isGroup: true,
+    name: g.name,
+    participants: g.participantIds,
+    lastMessage: g.messages[0] || null,
+    unreadCount: 0,
+  }));
+
+  // Compute unread counts and muted status for each group for this user
+  const groupItemsWithMeta = await Promise.all(
+    groups.map(async (g: any) => {
+      const participant = await db.groupChatParticipant.findUnique({
+        where: { groupChatId_participantId: { groupChatId: g.id, participantId: userId } } as any,
+      });
+      const lastRead = participant?.lastReadAt ?? new Date(0);
+      const unreadCount = await db.groupMessage.count({ where: { groupChatId: g.id, sentAt: { gt: lastRead }, senderId: { not: userId } } });
+      return {
+        id: g.id,
+        isGroup: true,
+        name: g.name,
+        participants: g.participantIds,
+        lastMessage: g.messages[0] || null,
+        lastMessageAt: g.messages[0] ? g.messages[0].sentAt : (g.lastMessageAt || null),
+        unreadCount,
+        muted: participant?.muted ?? false,
+      };
+    })
+  );
+
+  // Merge conversations and groups into a single list ordered by last activity
+  const convoItems = convoList.map(c => ({
+    ...c,
+    isGroup: false,
+    lastMessageAt: c.lastMessage ? c.lastMessage.sentAt : c.lastMessageAt || null,
+  }));
+
+  const merged = [...convoItems, ...groupItemsWithMeta].sort((a: any, b: any) => {
+    const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+    const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+    return tb - ta;
+  });
+
+  // Deduplicate items by type+id to avoid accidental duplicates
+  const seen = new Set<string>();
+  const unique: any[] = [];
+  for (const it of merged) {
+    const key = `${it.isGroup ? 'g' : 'c'}:${it.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(it);
+  }
+
+  return { items: unique, userId };
 }
 
 export default function MessagesIndex() {
-  const { conversations, userId } = useLoaderData<typeof loader>();
+  const { items, userId } = useLoaderData<typeof loader>();
 
   return (
     <PageWrapper maxWidth="4xl">
@@ -99,8 +163,8 @@ export default function MessagesIndex() {
           </Link>
         </div>
 
-        {/* Conversations List */}
-        {conversations.length === 0 ? (
+        {/* Conversations & Groups List */}
+        {items.length === 0 ? (
           <div className="rounded-lg bg-secondary p-8 text-center shadow">
             <svg
               className="mx-auto h-12 w-12 text-muted"
@@ -131,7 +195,41 @@ export default function MessagesIndex() {
           </div>
         ) : (
           <div className="space-y-2">
-            {conversations.map((conversation) => {
+            {items.map((it: any) => {
+              if (it.isGroup) {
+                const g = it;
+                const last = g.lastMessage;
+                return (
+                  <Link key={g.id} to={`/groups/${g.id}`} className="block rounded-lg bg-secondary p-4 shadow transition-shadow hover:shadow-md">
+                    <div className="flex items-start space-x-4">
+                      <div className="shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full text-white" style={{backgroundColor: 'var(--primary-color)'}}>
+                          {g.name[0].toUpperCase()}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-primary">{g.name}</p>
+                          {last && (
+                            <p className="text-xs text-muted">{(() => { const date = new Date(last.sentAt); return date.toLocaleDateString(); })()}</p>
+                          )}
+                        </div>
+                        {last && <div className="text-sm text-secondary mt-1">{last.sender.displayName}: {last.textContent}</div>}
+                      </div>
+                      {g.unreadCount > 0 && (
+                        <div className="shrink-0">
+                          <span className="inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold text-white" style={{backgroundColor: 'var(--primary-color)'}}>
+                            {g.unreadCount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              }
+
+              // conversation
+              const conversation = it;
               if (!conversation.otherParticipant) return null;
 
               const lastMessage = conversation.lastMessage;

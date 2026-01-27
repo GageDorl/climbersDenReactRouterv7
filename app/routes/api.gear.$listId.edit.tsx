@@ -15,9 +15,16 @@ export async function action({ params, request }: any) {
 
   const name = form.get('name')?.toString() || '';
   const description = form.get('description')?.toString() || '';
+  const tripDateRaw = form.get('tripDate')?.toString() || '';
+  let tripDate: Date | null = null;
+  if (tripDateRaw) {
+    // Expect YYYY-MM-DD from date input
+    const parsed = new Date(tripDateRaw + 'T00:00:00Z');
+    if (!isNaN(parsed.getTime())) tripDate = parsed;
+  }
 
   if (!name.trim()) return new Response(JSON.stringify({ error: 'Name required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
-  await db.gearList.update({ where: { id: listId }, data: { name: name.trim(), description: description.trim() } });
+  await db.gearList.update({ where: { id: listId }, data: { name: name.trim(), description: description.trim(), tripDate: tripDate } });
   return new Response(null, { status: 204 });
 }

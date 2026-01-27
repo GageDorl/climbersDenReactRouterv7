@@ -36,6 +36,12 @@ export default [
   route("messages", "routes/messages._index.tsx"),
   route("messages/new", "routes/messages.new.tsx"),
   route("messages/:conversationId", "routes/messages.$conversationId.tsx"),
+
+  // Group chat routes
+  route("groups", "routes/groups._index.tsx"),
+  route("groups/new", "routes/groups.new.tsx"),
+  route("groups/:groupId", "routes/groups.$groupId.tsx"),
+  route("groups/:groupId/settings", "routes/groups.$groupId.settings.tsx"),
   
   // API routes
   route("api/user/location", "routes/api.user.location.tsx"),
@@ -55,6 +61,9 @@ export default [
   route("api/notifications/comment", "routes/api.notifications.comment.tsx"),
   route("api/crags/nearby", "routes/api.crags.nearby.tsx"),
   route("api/crags/:cragId/favorite", "routes/api.crags.$cragId.favorite.tsx"),
+  route("api/groups/:groupId/leave", "routes/api.groups.$groupId.leave.tsx"),
+  route("api/groups/:groupId/mute", "routes/api.groups.$groupId.mute.tsx"),
+  route("api/groups/:groupId/read", "routes/api.groups.$groupId.read.tsx"),
   route("api/routes/:routeId/rating", "routes/api.routes.$routeId.rating.tsx"),
   route("api/ticks/:tickId/share", "routes/api.ticks.$tickId.share.tsx"),
   route("api/ticks/:tickId/delete", "routes/api.ticks.$tickId.delete.tsx"),

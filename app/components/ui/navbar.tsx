@@ -42,6 +42,11 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 		return null;
 	}
 
+	// Hide navbar on group conversation pages (full-screen thread)
+	if (location.pathname.startsWith('/groups/') && location.pathname !== '/groups' && location.pathname !== '/groups/new') {
+		return null;
+	}
+
 	const revalidator = useRevalidator();
 
 	return (
@@ -93,7 +98,7 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
 										</svg>
 										{unreadMessageCount > 0 && (
-											<span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold" style={{ color: "var(--surface)" }}>
+											<span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full alert-destructive text-xs font-bold">
 												{unreadMessageCount > 9 ? "9+" : unreadMessageCount}
 											</span>
 										)}

@@ -74,7 +74,7 @@ export default function GearDetails() {
   return (
     <PageWrapper maxWidth="4xl">
       <div className="mb-4">
-          <div className="flex items-center justify-between gap-5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
           <div className="flex-1">
             {!editing ? (
               <>

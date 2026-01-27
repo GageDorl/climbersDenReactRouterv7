@@ -204,30 +204,35 @@ export function initializeSocketIO(server: HTTPServer) {
 
     socket.on('message:read', async (data: MessageReadPayload) => {
       try {
-        const message = await db.message.update({
-          where: { id: data.messageId },
-          data: { readAt: new Date() },
-          include: {
-            sender: {
-              select: {
-                id: true,
-                displayName: true,
-                profilePhotoUrl: true,
-              },
-            },
-          },
+        // Find message and ensure we don't mark the sender as the reader
+        const msg = await db.message.findUnique({ where: { id: data.messageId }, select: { id: true, senderId: true, conversationId: true, readAt: true } });
+        if (!msg) return;
+        if (msg.senderId === userId) return; // don't count sender as reader
+
+        // Only set readAt if it's currently null
+        let updatedReadAt = msg.readAt;
+        if (!msg.readAt) {
+          await db.message.update({ where: { id: data.messageId }, data: { readAt: new Date() } });
+          updatedReadAt = new Date();
+        }
+
+        // Look up reader details
+        const reader = await db.user.findUnique({ where: { id: userId }, select: { id: true, displayName: true, profilePhotoUrl: true } });
+
+        // Emit read receipt to the conversation room (so both participants receive it)
+        socket.to(`conversation:${msg.conversationId}`).emit('message:read', {
+          messageId: msg.id,
+          conversationId: msg.conversationId,
+          readAt: updatedReadAt ? updatedReadAt.toISOString() : null,
+          reader,
         });
 
-        // Emit read receipt to sender
-        socket.to(`user:${message.senderId}`).emit('message:read', {
-          messageId: message.id,
-          conversationId: message.conversationId,
-          readAt: message.readAt!.toISOString(),
-          readBy: {
-            id: userId,
-            displayName: '', // Filled by client
-            profilePhotoUrl: null,
-          },
+        // Also notify the sender's personal room for direct notifications
+        socket.to(`user:${msg.senderId}`).emit('message:read', {
+          messageId: msg.id,
+          conversationId: msg.conversationId,
+          readAt: updatedReadAt ? updatedReadAt.toISOString() : null,
+          reader,
         });
       } catch (error) {
         console.error('Error marking message as read:', error);
@@ -275,6 +280,57 @@ export function initializeSocketIO(server: HTTPServer) {
 
     socket.on('group:message', async (data: { groupChatId: string; messageId: string }) => {
       socket.to(`group:${data.groupChatId}`).emit('group:message:new', data);
+    });
+
+    socket.on('group:message:read', async (data: { groupChatId: string; messageId: string }) => {
+      try {
+        const { groupChatId, messageId } = data;
+
+        // Upsert participant lastReadAt
+        await db.groupChatParticipant.upsert({
+          where: { groupChatId_participantId: { groupChatId, participantId: userId } } as any,
+          create: { groupChatId, participantId: userId, lastReadAt: new Date() },
+          update: { lastReadAt: new Date() },
+        });
+
+
+        // Ensure message exists and check sender
+        const msg = await db.groupMessage.findUnique({ where: { id: messageId }, select: { id: true, senderId: true } });
+        if (!msg) return;
+        // Don't count a user as reading their own message
+        if (msg.senderId === userId) return;
+
+        // Use a deduplicating SQL update to append the reader to the array
+        // This avoids race conditions where multiple concurrent events could add duplicates.
+        try {
+          await db.$executeRaw`UPDATE "GroupMessage" SET "readBy" = (
+            SELECT ARRAY(SELECT DISTINCT unnest("readBy" || ARRAY[${userId}::text]))
+          ) WHERE "id" = ${messageId}`;
+        } catch (sqlErr) {
+          // Fallback: try a conservative update via Prisma API (best-effort)
+          try {
+            const current = await db.groupMessage.findUnique({ where: { id: messageId }, select: { readBy: true } });
+            const currentArr = current?.readBy || [];
+            if (!currentArr.includes(userId)) {
+              await db.groupMessage.update({ where: { id: messageId }, data: { readBy: { push: userId } } as any });
+            }
+          } catch (fallbackErr) {
+            console.error('Failed to update groupMessage.readBy (both SQL and fallback):', fallbackErr);
+          }
+        }
+
+        // Get reader info
+        const reader = await db.user.findUnique({ where: { id: userId }, select: { id: true, displayName: true, profilePhotoUrl: true } });
+
+        // Emit read event to the group so clients can update read indicators
+        socket.to(`group:${groupChatId}`).emit('group:message:read', {
+          messageId,
+          groupChatId,
+          reader,
+        });
+      } catch (err) {
+        console.error('Error handling group message read:', err);
+      }
     });
 
     // Comment events
