@@ -172,31 +172,42 @@ export function initializeSocketIO(server: HTTPServer) {
         }
 
         // Create notification for recipient (using recipientId from above)
-        const notification = await db.notification.create({
-          data: {
-            userId: recipientId,
-            type: 'new_message',
-            relatedEntityId: message.id,
-            relatedEntityType: 'message',
-            content: {
-              message: `${message.sender.displayName} sent you a message`,
-              senderName: message.sender.displayName,
-            },
-            readStatus: false,
-          },
-        });
+        try {
+          // Respect recipient preferences if model exists
+          const prefs = await (db as any)?.notificationPreference?.findUnique({ where: { userId: recipientId } });
+          if (!prefs || prefs.messages !== false) {
+            const notification = await db.notification.create({
+              data: {
+                userId: recipientId,
+                type: 'new_message',
+                // Link to the conversation, not the notification/message id
+                relatedEntityId: message.conversationId,
+                relatedEntityType: 'message',
+                content: {
+                  message: `${message.sender.displayName} sent you a message`,
+                  senderName: message.sender.displayName,
+                  fragmentId: message.id, // client can append as #<id>
+                },
+                readStatus: false,
+              },
+            });
 
-        // Emit notification to recipient
-        socket.to(`user:${recipientId}`).emit('notification:new', {
-          notification: {
-            id: notification.id,
-            type: notification.type,
-            entityId: notification.relatedEntityId || '',
-            message: (notification.content as any).message,
-            createdAt: notification.createdAt.toISOString(),
-            read: notification.readStatus,
-          },
-        });
+            // Emit notification to recipient room
+            socket.to(`user:${recipientId}`).emit('notification:new', {
+              notification: {
+                id: notification.id,
+                type: notification.type,
+                entityId: notification.relatedEntityId || '',
+                fragmentId: (notification.content as any).fragmentId || null,
+                message: (notification.content as any).message,
+                createdAt: notification.createdAt.toISOString(),
+                read: notification.readStatus,
+              },
+            });
+          }
+        } catch (err) {
+          console.error('Failed to create or emit message notification', err);
+        }
       } catch (error) {
         console.error('Error sending message:', error);
       }

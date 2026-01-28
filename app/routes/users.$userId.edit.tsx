@@ -1,6 +1,6 @@
 import type { Route } from "./+types/users.$userId.edit";
 import { redirect } from "react-router";
-import { Form, useNavigation, useFetcher } from "react-router";
+import { Form, useNavigation, useFetcher, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -615,6 +615,21 @@ export default function EditProfile({ loaderData, actionData }: Route.ComponentP
           lastLocationUpdate={user.lastLocationUpdate?.toISOString()}
           locationPermissionGranted={user.locationPermissionGranted}
         />
+
+        {/* Notification Settings Link */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>Manage which notifications you receive.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-end">
+              <Link to="/settings/notifications">
+                <Button>Notification Settings</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Danger Zone: Delete Account */}
         <Card>

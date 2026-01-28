@@ -67,26 +67,33 @@ export async function action({ params, request }: any) {
   // Optionally notify the removed user
   const removedUser = await db.user.findUnique({ where: { id: participantId }, select: { id: true, displayName: true } });
   if (removedUser) {
-    await db.notification.create({
-      data: {
-        userId: participantId,
-        type: 'gear_claimed',
-        relatedEntityId: listId,
-        relatedEntityType: 'gear_list',
-        content: { message: `You were removed from list ${(gearList && gearList.name) || ''}` },
-      },
-    });
-    // emit notification to removed user
-    emitToUser(participantId, 'notification:new', {
-      notification: {
-        id: '',
-        type: 'gear_claimed',
-        entityId: listId,
-        message: `You were removed from list ${(gearList && gearList.name) || ''}`,
-        createdAt: new Date().toISOString(),
-        read: false,
-      },
-    });
+    try {
+      const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: participantId } });
+      if (!prefs || prefs.gearListInvites !== false) {
+        const notif = await db.notification.create({
+          data: {
+            userId: participantId,
+            type: 'gear_claimed',
+            relatedEntityId: listId,
+            relatedEntityType: 'gear_list',
+            content: { message: `You were removed from list ${(gearList && gearList.name) || ''}` },
+          },
+        });
+        // emit notification to removed user
+        emitToUser(participantId, 'notification:new', {
+          notification: {
+            id: notif.id,
+            type: notif.type,
+            entityId: notif.relatedEntityId || listId,
+            message: (notif.content as any).message,
+            createdAt: notif.createdAt.toISOString(),
+            read: notif.readStatus,
+          },
+        });
+      }
+    } catch (err) {
+      console.error('Failed to create/emit removed participant notification', err);
+    }
   }
 
   return new Response(null, { status: 204 });

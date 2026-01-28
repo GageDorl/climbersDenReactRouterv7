@@ -2,13 +2,14 @@ import { Link, useLocation, useRevalidator } from "react-router";
 import { useEffect } from "react";
 import { Button } from "./button";
 import { useSocket } from "~/hooks/use-socket";
-import { Backpack, Home } from "lucide-react";
+import { Backpack, Bell, Home } from "lucide-react";
 
 interface NavbarProps {
 	userId?: string;
 	displayName?: string;
 	profilePhotoUrl?: string | null;
 	unreadMessageCount?: number;
+	unreadNotificationCount?: number;
 }
 
 function NavbarSocketHandler({ userId, revalidator }: { userId?: string; revalidator: ReturnType<typeof useRevalidator> }) {
@@ -17,24 +18,77 @@ function NavbarSocketHandler({ userId, revalidator }: { userId?: string; revalid
 	useEffect(() => {
 		if (!socket || !userId) return;
 
-		const onNewMessage = () => revalidator.revalidate();
-		const onNotification = (data: any) => {
-			if (data?.notification?.type === "new_message") revalidator.revalidate();
+		// Helper to build a URL for a notification
+		const buildNotificationUrl = (notif: any) => {
+			const entityId = notif.entityId || '';
+			const fragment = notif.fragmentId ? `#${notif.fragmentId}` : '';
+			switch (notif.type) {
+				case 'new_message':
+					return `/messages/${entityId}${fragment}`;
+				case 'post_comment':
+				case 'comment_reply':
+				case 'post_liked':
+					return `/posts/${entityId}${fragment}`;
+				case 'new_follower':
+					return `/users/${entityId}`;
+				case 'gear_claimed':
+				case 'all_gear_claimed':
+					return `/gear/${entityId}`;
+				default:
+					return '/';
+			}
 		};
 
-		socket.on("message:new", onNewMessage);
-		socket.on("notification:new", onNotification);
+		const showSystemNotification = (notif: any) => {
+			if (!notif) return;
+			if (typeof window === 'undefined' || !('Notification' in window)) return;
+			// Only show system notification when page isn't visible
+			if (document.visibilityState === 'visible') return;
+
+			if (Notification.permission === 'default') {
+				Notification.requestPermission().then((perm) => {
+					if (perm === 'granted') showSystemNotification(notif);
+				});
+				return;
+			}
+
+			if (Notification.permission !== 'granted') return;
+
+			const title = 'climbersDen';
+			const body = notif.message || '';
+			const url = buildNotificationUrl(notif);
+
+			try {
+				const n = new Notification(title, { body });
+				n.onclick = () => {
+					window.focus();
+					window.location.href = url;
+				};
+			} catch (err) {
+				console.error('Failed to show system notification', err);
+			}
+		};
+
+		const onNewMessage = () => revalidator.revalidate();
+		const onNotification = (data: any) => {
+			revalidator.revalidate();
+			// Attempt to show a browser notification for the incoming notification
+			showSystemNotification(data?.notification);
+		};
+
+		socket.on('message:new', onNewMessage);
+		socket.on('notification:new', onNotification);
 
 		return () => {
-			socket.off("message:new", onNewMessage);
-			socket.off("notification:new", onNotification);
+			socket.off('message:new', onNewMessage);
+			socket.off('notification:new', onNotification);
 		};
 	}, [socket, userId, revalidator]);
 
 	return null;
 }
 
-export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCount = 0 }: NavbarProps) {
+export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCount = 0, unreadNotificationCount = 0 }: NavbarProps) {
 	const location = useLocation();
 
 	if (location.pathname.startsWith("/auth")) return null;
@@ -88,6 +142,16 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 										</Button>
 									</Link>
 								</div>
+								<Link to="/notifications" className="relative">
+									<Button variant={location.pathname === "/notifications" ? "default" : "ghost"} size="sm" aria-label="Notifications">
+										<Bell className="h-5 w-5" />
+										{unreadNotificationCount > 0 && (
+											<span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full alert-destructive text-xs font-bold">
+												{unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+											</span>
+										)}
+									</Button>
+								</Link>
 
 								<Link to="/messages" className="relative">
 									<Button
@@ -105,6 +169,7 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 										)}
 									</Button>
 								</Link>
+
 
 								<div className="hidden sm:flex items-center">
 									<Link to={`/users/${displayName}`} className="flex items-center">

@@ -43,6 +43,10 @@ export default [
   route("groups/:groupId", "routes/groups.$groupId.tsx"),
   route("groups/:groupId/settings", "routes/groups.$groupId.settings.tsx"),
   
+  // Notifications
+  route("notifications", "routes/notifications.tsx"),
+  route("settings/notifications", "routes/settings.notifications.tsx"),
+
   // API routes
   route("api/user/location", "routes/api.user.location.tsx"),
   route("api/user/delete", "routes/api.user.delete.tsx"),
@@ -68,6 +72,9 @@ export default [
   route("api/ticks/:tickId/share", "routes/api.ticks.$tickId.share.tsx"),
   route("api/ticks/:tickId/delete", "routes/api.ticks.$tickId.delete.tsx"),
   route("api/upload/signature", "routes/api.upload.signature.tsx"),
+  route("api/notifications/:notificationId/read", "routes/api.notifications.$notificationId.read.tsx"),
+  route("api/notifications/clear", "routes/api.notifications.clear.tsx"),
+  route("api/notifications/markallread", "routes/api.notifications.markallread.tsx"),
   
   // Tick routes
   route("ticks", "routes/ticks._index.tsx"),

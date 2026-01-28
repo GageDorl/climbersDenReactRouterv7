@@ -4,7 +4,7 @@ import type { Route } from "./+types/messages.$conversationId";
 import { requireUserId } from "~/lib/auth.server";
 import { db } from "~/lib/db.server";
 import { uploadFileToCloudinary } from '~/lib/cloudinary.server';
-import { emitToConversation } from "~/lib/realtime.server";
+import { emitToConversation, emitToUser } from "~/lib/realtime.server";
 import { MessageThread } from "~/components/messages/message-thread";
 import { MessageInput } from "~/components/messages/message-input";
 import { useMessageListener, useMessaging, useSocket } from "~/hooks/use-socket";
@@ -251,6 +251,41 @@ export async function action({ request, params }: Route.ActionArgs) {
       readAt: message.readAt?.toISOString() || null,
     },
   });
+
+  // Also create a notification for the recipient (for HTTP-based sends)
+  try {
+    const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: recipientId } });
+    if (!prefs || prefs.messages !== false) {
+      const notif = await db.notification.create({
+          data: {
+            userId: recipientId,
+            type: 'new_message',
+            relatedEntityId: conversationId, // link to conversation
+            relatedEntityType: 'message',
+            content: {
+              message: `${message.sender.displayName} sent you a message`,
+              senderName: message.sender.displayName,
+              fragmentId: message.id,
+            },
+            readStatus: false,
+          },
+        });
+
+        emitToUser(recipientId, 'notification:new', {
+          notification: {
+            id: notif.id,
+            type: notif.type,
+            entityId: notif.relatedEntityId || '',
+            fragmentId: (notif.content as any).fragmentId || null,
+            message: (notif.content as any).message,
+            createdAt: notif.createdAt.toISOString(),
+            read: notif.readStatus,
+          },
+        });
+    }
+  } catch (err) {
+    console.error('Failed to create/emit message notification (HTTP path)', err);
+  }
 
   return { success: true };
 }

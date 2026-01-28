@@ -1,0 +1,4 @@
+- [ ] Notifications page implemented
+- [ ] Notification preferences page implemented
+- [ ] Navbar bell shows unread count
+- [ ] Notification items are clickable

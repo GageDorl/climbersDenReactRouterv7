@@ -77,19 +77,41 @@ export const action = async ({ request }: Route.ActionArgs) => {
     }
 
     if (notificationUserId) {
-      await db.notification.create({
-        data: {
-          userId: notificationUserId,
-          type: type === 'reply' ? 'comment_reply' : 'post_comment',
-          relatedEntityId: commentId,
-          relatedEntityType: 'post',
-          content: {
-            message: notificationMessage,
-            commentId: commentId,
-            postId: postId,
-          },
-        },
-      });
+      try {
+        const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: notificationUserId } });
+        const wants = type === 'reply' ? (prefs ? prefs.commentReplies : true) : (prefs ? prefs.postComments : true);
+          if (wants !== false) {
+            const notif = await db.notification.create({
+              data: {
+                userId: notificationUserId,
+                type: type === 'reply' ? 'comment_reply' : 'post_comment',
+                // link to post, include fragment for comment
+                relatedEntityId: postId,
+                relatedEntityType: 'post',
+                content: {
+                  message: notificationMessage,
+                  commentId: commentId,
+                  postId: postId,
+                  fragmentId: commentId,
+                },
+              },
+            });
+            // emit notification
+            emitToUser(notificationUserId, 'notification:new', {
+              notification: {
+                id: notif.id,
+                type: notif.type,
+                entityId: notif.relatedEntityId || '',
+                fragmentId: (notif.content as any).fragmentId || null,
+                message: (notif.content as any).message,
+                createdAt: notif.createdAt.toISOString(),
+                read: notif.readStatus,
+              },
+            });
+          }
+      } catch (err) {
+        console.error('Failed to create comment notification with prefs check', err);
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

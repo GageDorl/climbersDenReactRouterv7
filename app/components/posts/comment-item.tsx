@@ -66,6 +66,8 @@ export function CommentItem({
   const [showMenu, setShowMenu] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
   const [allReplies, setAllReplies] = useState<(Comment & { user: Pick<User, 'id' | 'displayName' | 'profilePhotoUrl'> })[]>([]);
+  const [highlighted, setHighlighted] = useState(false);
+  const highlightTimerRef = useRef<number | null>(null);
 
   // Seed initial replies if provided on the comment prop
   useEffect(() => {
@@ -134,6 +136,15 @@ export function CommentItem({
     };
   }, [showMenu]);
 
+  // Cleanup highlight timer
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleDelete = () => {
     if (confirm('Delete this comment?')) {
       deleteFetcher.submit(
@@ -167,7 +178,26 @@ export function CommentItem({
   };
 
   return (
-    <div className="py-3">
+    <div
+      id={`comment-${comment.id}`}
+      className={`py-3 ${highlighted ? 'ring-2 ring-accent/60 rounded-lg bg-accent/10' : ''}`}
+      tabIndex={-1}
+      onFocus={() => {
+        setHighlighted(true);
+        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+        // remove highlight after 2.5s
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore setTimeout return type
+        highlightTimerRef.current = window.setTimeout(() => setHighlighted(false), 2500);
+      }}
+      onBlur={() => {
+        setHighlighted(false);
+        if (highlightTimerRef.current) {
+          clearTimeout(highlightTimerRef.current);
+          highlightTimerRef.current = null;
+        }
+      }}
+    >
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="shrink-0">

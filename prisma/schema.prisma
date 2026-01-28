@@ -42,6 +42,7 @@ model User {
   journals             Journal[]
   gearListsCreated     GearList[]
   notifications        Notification[]
+  notificationPreferences NotificationPreference?
   reportsSubmitted     Report[]
   blocksInitiated      Block[]               @relation("BlocksInitiated")
   blocksReceived       Block[]               @relation("BlocksReceived")
@@ -57,6 +58,22 @@ model User {
   @@index([createdAt])
   @@index([lastLocationUpdate])
   @@map("users")
+}
+
+model NotificationPreference {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  messages              Boolean  @default(true)
+  postLikes             Boolean  @default(true)
+  postComments          Boolean  @default(true)
+  commentReplies        Boolean  @default(true)
+  gearListInvites       Boolean  @default(true)
+  follows               Boolean  @default(true)
+  createdAt             DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
 
 model Post {

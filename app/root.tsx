@@ -48,8 +48,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { user: null, unreadMessageCount: 0, mapboxToken };
   }
 
-  // Get user info and unread message count
-  const [user, unreadCount] = await Promise.all([
+  // Get user info and unread counts (messages + notifications)
+  const [user, unreadMessageCount, unreadNotificationCount] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
       select: {
@@ -64,11 +64,13 @@ export async function loader({ request }: Route.LoaderArgs) {
         readAt: null,
       },
     }),
+    db.notification.count({ where: { userId, readStatus: false } }),
   ]);
 
   return {
     user,
-    unreadMessageCount: unreadCount,
+    unreadMessageCount,
+    unreadNotificationCount,
     mapboxToken,
   };
 }
@@ -119,7 +121,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const { user, unreadMessageCount } = useLoaderData<typeof loader>();
+  const { user, unreadMessageCount, unreadNotificationCount } = useLoaderData<typeof loader>();
   
   return (
     <>
@@ -128,6 +130,7 @@ export default function App() {
         displayName={user?.displayName} 
         profilePhotoUrl={user?.profilePhotoUrl}
         unreadMessageCount={unreadMessageCount}
+        unreadNotificationCount={unreadNotificationCount}
       />
       <Outlet />
     </>

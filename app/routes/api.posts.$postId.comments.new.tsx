@@ -3,7 +3,7 @@ import type { Route } from './+types/api.posts.$postId.comments.new';
 import { getUserId } from '~/lib/auth.server';
 import { db } from '~/lib/db.server';
 import { z } from 'zod';
-import { getSocketIO } from '~/lib/realtime.server';
+import { getSocketIO, emitToUser } from '~/lib/realtime.server';
 
 const createCommentSchema = z.object({
   textContent: z.string().min(1, 'Comment cannot be empty').max(500, 'Comment too long'),
@@ -119,19 +119,37 @@ export async function action({ params, request }: Route.ActionArgs) {
       });
 
       if (parentComment && parentComment.userId !== userId) {
-        await db.notification.create({
-          data: {
-            userId: parentComment.userId,
-            type: 'comment_reply',
-            relatedEntityId: comment.id,
-            relatedEntityType: 'post',
-            content: {
-              message: `${comment.user.displayName} replied to your comment`,
-              commentId: comment.id,
-              postId: postId,
+        // check recipient preferences
+        const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: parentComment.userId } });
+        if (!prefs || prefs.commentReplies !== false) {
+          const notif = await db.notification.create({
+            data: {
+              userId: parentComment.userId,
+              type: 'comment_reply',
+              // link to the post, use fragment for the specific comment
+              relatedEntityId: postId,
+              relatedEntityType: 'post',
+              content: {
+                message: `${comment.user.displayName} replied to your comment`,
+                commentId: comment.id,
+                postId: postId,
+                fragmentId: comment.id,
+              },
             },
-          },
-        });
+          });
+          // emit notification to recipient
+          emitToUser(parentComment.userId, 'notification:new', {
+            notification: {
+              id: notif.id,
+              type: notif.type,
+              entityId: notif.relatedEntityId || '',
+              fragmentId: (notif.content as any).fragmentId || null,
+              message: (notif.content as any).message,
+              createdAt: notif.createdAt.toISOString(),
+              read: notif.readStatus,
+            },
+          });
+        }
       }
     } else {
       // Notify post author about new comment
@@ -141,19 +159,35 @@ export async function action({ params, request }: Route.ActionArgs) {
       });
 
       if (post && post.userId !== userId) {
-        await db.notification.create({
-          data: {
-            userId: post.userId,
-            type: 'post_comment',
-            relatedEntityId: comment.id,
-            relatedEntityType: 'post',
-            content: {
-              message: `${comment.user.displayName} commented on your post`,
-              commentId: comment.id,
-              postId: postId,
+        const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: post.userId } });
+        if (!prefs || prefs.postComments !== false) {
+          const notif = await db.notification.create({
+            data: {
+              userId: post.userId,
+              type: 'post_comment',
+              relatedEntityId: postId,
+              relatedEntityType: 'post',
+              content: {
+                message: `${comment.user.displayName} commented on your post`,
+                commentId: comment.id,
+                postId: postId,
+                fragmentId: comment.id,
+              },
             },
-          },
-        });
+          });
+          // emit notification to post author
+          emitToUser(post.userId, 'notification:new', {
+            notification: {
+              id: notif.id,
+              type: notif.type,
+              entityId: notif.relatedEntityId || '',
+              fragmentId: (notif.content as any).fragmentId || null,
+              message: (notif.content as any).message,
+              createdAt: notif.createdAt.toISOString(),
+              read: notif.readStatus,
+            },
+          });
+        }
       }
     }
 

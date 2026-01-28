@@ -21,6 +21,10 @@ interface CommentThreadProps {
   isOpen?: boolean;
 }
 
+type CommentThreadPropsExtended = CommentThreadProps & {
+  focusCommentId?: string | null
+}
+
 export function CommentThread({
   postId,
   comments: initialComments,
@@ -28,7 +32,8 @@ export function CommentThread({
   hasMore: initialHasMore,
   nextCursor: initialNextCursor,
   isOpen,
-}: CommentThreadProps) {
+  focusCommentId,
+}: CommentThreadPropsExtended) {
   // Comments already come from loader in correct order (oldest first, newest at bottom)
   const [comments, setComments] = useState(initialComments);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -225,6 +230,103 @@ export function CommentThread({
       
     }
   }, [loadMoreFetcher.data, loadMoreFetcher.state]);
+
+  // When the thread is open and a focusCommentId is provided, wait a tick for
+  // When the thread is open and a focusCommentId is provided, wait for
+  // comments to be loaded, load more pages if necessary, expand parent replies
+  // and then scroll/focus the target comment. This actively drives the
+  // existing pagination and reply loaders rather than relying on brittle
+  // timeouts.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!focusCommentId) return;
+
+    let cancelled = false;
+
+    const findDom = (id: string) => document.getElementById(`comment-${id}`);
+
+    const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+    const ensureRepliesOpen = async (parentId: string) => {
+      // Try to find the parent comment DOM and click its "Show replies" button
+      const parentEl = findDom(parentId);
+      if (!parentEl) return false;
+      const btn = Array.from(parentEl.querySelectorAll('button')).find((b) => {
+        const t = (b.textContent || '').trim().toLowerCase();
+        return t.startsWith('show replies') || t.startsWith('view');
+      }) as HTMLButtonElement | undefined;
+      if (btn && !btn.disabled) {
+        btn.click();
+        // wait a moment for replies to render
+        await sleep(300);
+        return true;
+      }
+      return false;
+    };
+
+    const run = async () => {
+      const start = Date.now();
+      const timeout = 7000; // ms
+
+      while (!cancelled && Date.now() - start < timeout) {
+        // If DOM exists, focus and return
+        const existing = findDom(focusCommentId);
+        if (existing) {
+          existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (existing as HTMLElement).focus();
+          return;
+        }
+
+        // Check if comment exists in loaded comments (top-level)
+        const topLevel = comments.find((c) => c.id === focusCommentId);
+        if (topLevel) {
+          // allow render to flush
+          await sleep(100);
+          const el = findDom(focusCommentId);
+          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); (el as HTMLElement).focus(); return; }
+        }
+
+        // Check if it's a reply present in any loaded comment.replies
+        let parentId: string | null = null;
+        for (const c of comments) {
+          if (c.replies && c.replies.some((r) => r.id === focusCommentId)) {
+            parentId = c.id;
+            break;
+          }
+        }
+        if (parentId) {
+          // ensure replies are open for that parent
+          await ensureRepliesOpen(parentId);
+          // then wait/render and look for DOM
+          await sleep(150);
+          const el = findDom(focusCommentId);
+          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); (el as HTMLElement).focus(); return; }
+        }
+
+        // If we have more pages, request next page and wait for it to load
+        if (nextCursor) {
+          if (loadMoreFetcher.state === 'idle') {
+            loadMoreFetcher.load(`/api/posts/${postId}/comments?limit=10&cursor=${nextCursor}`);
+          }
+          // wait for load to complete or short delay
+          const waitStart = Date.now();
+          while (!cancelled && Date.now() - waitStart < 3000 && loadMoreFetcher.state !== 'idle') {
+            await sleep(100);
+          }
+          // loop and check again
+          await sleep(100);
+          continue;
+        }
+
+        // nothing left to do; wait briefly and retry until timeout
+        await sleep(200);
+      }
+    };
+
+    run().catch((err) => console.error('[CommentThread] focus error', err));
+
+    return () => { cancelled = true; };
+  }, [isOpen, focusCommentId, comments, nextCursor, loadMoreFetcher, postId]);
 
   const handleNewComment = (data?: any) => {
     console.log('[CommentThread] handleNewComment called with:', data);

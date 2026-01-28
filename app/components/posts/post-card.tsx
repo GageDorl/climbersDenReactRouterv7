@@ -49,6 +49,7 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
   const likeFetcher = useFetcher();
   const { socket } = useSocket();
   const { trigger: triggerHaptic } = useHapticFeedback();
+  const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
 
   const handleDoubleTap = () => {
     if (!currentUserId) return;
@@ -91,6 +92,19 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
   useEffect(() => {
     setCommentCount(post.commentCount);
   }, [post.commentCount]);
+
+  // If the page was navigated with a hash like #<commentId>, open comments and focus
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (hash && hash.length > 1) {
+      const id = hash.replace('#', '');
+      if (id) {
+        setFocusCommentId(id);
+        setShowCommentThread(true);
+      }
+    }
+  }, []);
 
   // Handle like fetcher completion
   useEffect(() => {
@@ -303,12 +317,11 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
               currentUserId={currentUserId}
               hasMore={commentCount > 0}
               isOpen={showCommentThread}
+              focusCommentId={focusCommentId}
             />
           </div>
         </BottomSheet>
-        
       </CardContent>
-
       <ShareModal
         postId={post.id}
         postTitle={post.textContent || `${post.user.displayName}'s post`}

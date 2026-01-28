@@ -129,32 +129,39 @@ export async function action({ params, request }: any) {
     // Create a notification for the gear list creator (if not the claimer)
     const gearList = await db.gearList.findUnique({ where: { id: gearListId }, select: { creatorId: true } });
     if (gearList && gearList.creatorId !== userId) {
-      const user = await db.user.findUnique({ where: { id: userId }, select: { displayName: true } });
-      const notif = await db.notification.create({
-        data: {
-          userId: gearList.creatorId,
-          type: 'gear_claimed',
-          relatedEntityId: (updatedItem as any).id,
-          relatedEntityType: 'gear_list',
-          content: {
-            message: `${user?.displayName || 'Someone'} updated claims for ${(updatedItem as any).itemName}`,
-            itemId: (updatedItem as any).id,
-            gearListId,
-          },
-        },
-      });
+      try {
+        const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: gearList.creatorId } });
+        if (!prefs || prefs.gearListInvites !== false) {
+          const user = await db.user.findUnique({ where: { id: userId }, select: { displayName: true } });
+          const notif = await db.notification.create({
+            data: {
+              userId: gearList.creatorId,
+              type: 'gear_claimed',
+              relatedEntityId: (updatedItem as any).id,
+              relatedEntityType: 'gear_list',
+              content: {
+                message: `${user?.displayName || 'Someone'} updated claims for ${(updatedItem as any).itemName}`,
+                itemId: (updatedItem as any).id,
+                gearListId,
+              },
+            },
+          });
 
-      // Emit notification to creator
-      emitToUser(gearList.creatorId, 'notification:new', {
-        notification: {
-          id: notif.id,
-          type: notif.type,
-          entityId: notif.relatedEntityId || '',
-          message: (notif.content as any).message,
-          createdAt: notif.createdAt.toISOString(),
-          read: notif.readStatus,
-        },
-      });
+          // Emit notification to creator
+          emitToUser(gearList.creatorId, 'notification:new', {
+            notification: {
+              id: notif.id,
+              type: notif.type,
+              entityId: notif.relatedEntityId || '',
+              message: (notif.content as any).message,
+              createdAt: notif.createdAt.toISOString(),
+              read: notif.readStatus,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Failed to create/emit gear notification', err);
+      }
     }
 
     return new Response(JSON.stringify({ item: { ...(updatedItem as any), updatedAt: (updatedItem as any).updatedAt?.toISOString() }, claimedByUsers }), { headers: { 'Content-Type': 'application/json' } });

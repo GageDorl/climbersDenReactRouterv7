@@ -1,7 +1,7 @@
 import type { Route } from './+types/api.posts.$postId.like';
 import { db } from '~/lib/db.server';
 import { getUserId } from '~/lib/auth.server';
-import { getSocketIO } from '~/lib/realtime.server';
+import { getSocketIO, emitToUser } from '~/lib/realtime.server';
 
 export async function action({ params, request }: Route.ActionArgs) {
   const userId = await getUserId(request);
@@ -78,6 +78,44 @@ export async function action({ params, request }: Route.ActionArgs) {
         liked: true,
         likeCount: (post.likeCount || 0) + 1,
       });
+    }
+
+    // Create notification for post author (if not the liker)
+    try {
+      const postAuthor = await db.post.findUnique({ where: { id: postId }, select: { userId: true } });
+      if (postAuthor && postAuthor.userId !== userId) {
+        // Check recipient preferences
+        const prefs = await (db as any).notificationPreference?.findUnique({ where: { userId: postAuthor.userId } });
+        if (!prefs || prefs.postLikes !== false) {
+          // Get liker displayName
+          const liker = await db.user.findUnique({ where: { id: userId }, select: { displayName: true } });
+          const likerName = liker?.displayName || 'Someone';
+
+          const notif = await db.notification.create({
+            data: {
+              userId: postAuthor.userId,
+              type: 'post_liked',
+              relatedEntityId: postId,
+              relatedEntityType: 'post',
+              content: { message: `${likerName} liked your post`, likerId: userId, likerName },
+            },
+          });
+
+          // Emit notification via realtime helper
+          emitToUser(postAuthor.userId, 'notification:new', {
+            notification: {
+              id: notif.id,
+              type: notif.type,
+              entityId: notif.relatedEntityId || '',
+              message: (notif.content as any).message,
+              createdAt: notif.createdAt.toISOString(),
+              read: notif.readStatus,
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to create/emit like notification', err);
     }
 
     return Response.json({ liked: true, success: true });
