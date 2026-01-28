@@ -17,6 +17,7 @@ const viteDevServer =
 
       
 const app = express();
+app.set('trust proxy', true);
 
 // (diagnostics removed)
 

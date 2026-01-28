@@ -6,6 +6,7 @@ import { MessageInput } from '~/components/messages/message-input';
 import { emitToGroup } from '~/lib/realtime.server';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGroupChat } from '~/hooks/use-socket';
+import { Settings } from 'lucide-react';
 
 export async function loader({ request, params }: any) {
   const userId = await requireUserId(request);
@@ -46,7 +47,14 @@ export async function loader({ request, params }: any) {
     } catch (sqlErr) {
       // Fallback: fetch messages missing userId and update individually
       try {
-        const toUpdate = await db.groupMessage.findMany({ where: { groupChatId: groupId, senderId: { not: userId }, readBy: { not: { has: userId } } as any }, select: { id: true, readBy: true } as any });
+        const toUpdate = await db.groupMessage.findMany({
+          where: {
+            groupChatId: groupId,
+            senderId: { not: userId },
+            NOT: { readBy: { has: userId } },
+          },
+          select: { id: true, readBy: true },
+        } as any);
         for (const m of toUpdate) {
           const existing = m.readBy || [];
           if (!existing.includes(userId)) {
@@ -269,9 +277,7 @@ export default function GroupThread({ loaderData }: any) {
           </div>
           <div className="ml-auto">
             <a href={`/groups/${group.id}/settings`} className="rounded-md px-2 py-1 hover:bg-secondary text-secondary" title="Group settings">
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.5-3.5a7.5 7.5 0 0 0-.15-1.5l2.04-1.58-2-3.46-2.4.96a7.5 7.5 0 0 0-1.3-.75L15 1h-6l-.54 2.17c-.46.18-.9.4-1.3.66L4.76 2.87 2.78 6.33 4.82 7.9c-.1.5-.16 1-.16 1.6s.06 1.1.16 1.6L2.78 13.7l1.98 3.46 2.4-.96c.4.26.84.48 1.3.66L9 23h6l.54-2.17c.46-.18.9-.4 1.3-.66l2.4.96 1.98-3.46-2.04-1.58c.1-.5.16-1 .16-1.6z" />
-              </svg>
+              <Settings icon className="h-5 w-5" />
             </a>
           </div>
         </div>
