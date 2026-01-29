@@ -270,7 +270,6 @@ export function PostCard({ post, currentUserId, showActions = true, showComments
                         src={url}
                         alt={`Post media ${index + 1}`}
                         className="w-full object-cover aspect-square"
-                        fetchPriority="high"
                       />
                     </div>
                 );

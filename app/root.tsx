@@ -18,7 +18,7 @@ import { db } from "./lib/db.server";
 export const meta: Route.MetaFunction = () => [
   { title: "climbersDen - Social Network for Rock Climbers" },
   { name: "description", content: "Connect with climbers, discover crags, track your climbing progress" },
-  { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" },
+  { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
   { name: "mobile-web-app-capable", content: "yes" },
   { name: "apple-mobile-web-app-capable", content: "yes" }, // Keep for backward compatibility
   { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -69,6 +69,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     user,
+  {
+    rel: "preload",
+    href: "/fonts/Inter-Variable.woff2",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+  },
     unreadMessageCount,
     unreadNotificationCount,
     mapboxToken,
