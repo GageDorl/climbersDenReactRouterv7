@@ -28,16 +28,7 @@ export const meta: Route.MetaFunction = () => [
 
 export const links: Route.LinksFunction = () => [
   { rel: "manifest", href: "/manifest.json" },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
+  { rel: "preload", href: "/fonts/VendSans-VariableFont_wght.ttf", as: "font", type: "font/ttf", crossOrigin: "anonymous" },
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -69,13 +60,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     user,
-  {
-    rel: "preload",
-    href: "/fonts/Inter-Variable.woff2",
-    as: "font",
-    type: "font/woff2",
-    crossOrigin: "anonymous",
-  },
     unreadMessageCount,
     unreadNotificationCount,
     mapboxToken,
