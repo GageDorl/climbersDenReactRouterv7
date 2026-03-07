@@ -47,6 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         id: true,
         displayName: true,
         profilePhotoUrl: true,
+        role: true,
       },
     }),
     db.message.count({
@@ -113,7 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { user, unreadMessageCount, unreadNotificationCount } = useLoaderData<typeof loader>();
-  
+
   return (
     <>
       <Navbar 
@@ -122,6 +123,7 @@ export default function App() {
         profilePhotoUrl={user?.profilePhotoUrl}
         unreadMessageCount={unreadMessageCount}
         unreadNotificationCount={unreadNotificationCount}
+        role={user?.role}
       />
       <Outlet />
     </>

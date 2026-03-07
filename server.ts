@@ -83,7 +83,7 @@ app.get('/api/posts/:postId/preview', async (req, res) => {
       include: { user: true },
     });
 
-    if (!post) return res.status(404).json({ error: 'not_found' });
+    if (!post || post.hidden) return res.status(404).json({ error: 'not_found' });
 
     const preview = {
       id: post.id,

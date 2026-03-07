@@ -2,6 +2,12 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
+
+  // Admin routes
+  route("admin/reports", "routes/admin.reports.tsx"),
+  route("api/reports", "routes/api.reports._index.tsx"),
+  route("api/reports/:reportId", "routes/api.reports.$reportId.action.tsx"),
+  route("report", "routes/report.tsx"),
   
   // Auth routes
   route("auth/login", "routes/auth.login.tsx"),

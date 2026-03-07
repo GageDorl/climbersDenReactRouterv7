@@ -16,7 +16,7 @@ export async function loader({ request }: any) {
       ],
     },
     include: {
-      gearItems: { take: 1 },
+      gearItems: { select: { id: true } },
     },
     orderBy: { updatedAt: 'desc' },
   });
@@ -44,11 +44,11 @@ export default function GearIndex() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="flex flex-col gap-3">
           {gearLists.map((list: any) => (
             <Link key={list.id} to={`/gear/${list.id}`} className="block rounded-lg bg-secondary p-4 shadow hover:shadow-md">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col min-w-0">
                   <p className="text-sm font-semibold text-primary">{list.name}</p>
                   {list.tripDate ? (
                     <p className="text-xs text-secondary">Trip: {formatDate(list.tripDate)}</p>
@@ -59,7 +59,7 @@ export default function GearIndex() {
                     <p className="text-xs text-secondary truncate">{list.description}</p>
                   )}
                 </div>
-                <div className="text-xs text-muted">{list.gearItems?.length || 0} items</div>
+                <div className="text-xs text-muted text-center">{list.gearItems?.length || 0} items</div>
               </div>
             </Link>
           ))}

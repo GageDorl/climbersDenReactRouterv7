@@ -10,6 +10,7 @@ interface NavbarProps {
 	profilePhotoUrl?: string | null;
 	unreadMessageCount?: number;
 	unreadNotificationCount?: number;
+	role?: string | null;
 }
 
 function NavbarSocketHandler({ userId, revalidator }: { userId?: string; revalidator: ReturnType<typeof useRevalidator> }) {
@@ -88,7 +89,7 @@ function NavbarSocketHandler({ userId, revalidator }: { userId?: string; revalid
 	return null;
 }
 
-export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCount = 0, unreadNotificationCount = 0 }: NavbarProps) {
+export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCount = 0, unreadNotificationCount = 0, role }: NavbarProps) {
 	const location = useLocation();
 
 	if (location.pathname.startsWith("/auth")) return null;
@@ -141,6 +142,13 @@ export function Navbar({ userId, displayName, profilePhotoUrl, unreadMessageCoun
 											Gear
 										</Button>
 									</Link>
+									{role === 'ADMIN' && (
+										<Link to="/admin/reports">
+											<Button variant={location.pathname.startsWith("/admin") ? "default" : "ghost"} size="sm">
+												Admin
+											</Button>
+										</Link>
+									)}
 								</div>
 								<Link to="/notifications" className="relative">
 									<Button variant={location.pathname === "/notifications" ? "default" : "ghost"} size="sm" aria-label="Notifications">

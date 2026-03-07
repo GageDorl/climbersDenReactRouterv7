@@ -43,6 +43,7 @@ model User {
   gearListsCreated     GearList[]
   notifications        Notification[]
   notificationPreferences NotificationPreference?
+  role                      UserRole @default(USER)
   reportsSubmitted     Report[]
   blocksInitiated      Block[]               @relation("BlocksInitiated")
   blocksReceived       Block[]               @relation("BlocksReceived")
@@ -58,6 +59,11 @@ model User {
   @@index([createdAt])
   @@index([lastLocationUpdate])
   @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 model NotificationPreference {
@@ -81,6 +87,7 @@ model Post {
   userId        String
   textContent   String?
   mediaUrls     String[]
+  hidden        Boolean   @default(false)
   likeCount     Int       @default(0)
   commentCount  Int       @default(0)
   createdAt     DateTime  @default(now())

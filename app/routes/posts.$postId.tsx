@@ -69,6 +69,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw new Response('Post not found', { status: 404 });
   }
 
+  const currentUser = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (post.hidden && currentUser?.role !== 'ADMIN') {
+    throw new Response('Post not found', { status: 404 });
+  }
+
   const postData = post as any;
   // If the post's author has been soft-deleted, signal the UI to show a deleted message
   const authorDeleted = !!(postData.user && postData.user.deletedAt);

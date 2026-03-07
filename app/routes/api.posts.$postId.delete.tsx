@@ -1,7 +1,7 @@
 import { redirect } from 'react-router';
 import type { Route } from './+types/api.posts.$postId.delete';
 import { db } from '~/lib/db.server';
-import { getUserId } from '~/lib/auth.server';
+import { getUserId, getUser } from '~/lib/auth.server';
 
 export async function action({ params, request }: Route.ActionArgs) {
   const userId = await getUserId(request);
@@ -22,7 +22,11 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (post.userId !== userId) {
-    throw new Response('Forbidden - You can only delete your own posts', { status: 403 });
+    // allow admins to delete any post
+    const currentUser = await getUser(request);
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      throw new Response('Forbidden - You can only delete your own posts', { status: 403 });
+    }
   }
 
   // Delete the post (cascade will handle likes)

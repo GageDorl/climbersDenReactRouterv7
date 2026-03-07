@@ -11,6 +11,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response('Unauthorized', { status: 401 });
   }
 
+  const currentUser = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+
   const url = new URL(request.url);
   const cursor = url.searchParams.get('cursor');
   const limit = 20;
@@ -21,6 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
       // Only posts whose author hasn't been soft-deleted
       user: { deletedAt: null },
+      ...(currentUser?.role !== 'ADMIN' ? { hidden: false } : {}),
     },
     take: limit,
     orderBy: { createdAt: 'desc' },

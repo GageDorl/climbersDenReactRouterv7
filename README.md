@@ -224,23 +224,34 @@ See `prisma/schema.prisma` for full schema definition.
 - [x] Authentication infrastructure
 - [x] Foundational utilities (auth, db, validation, geolocation)
 - [x] Development environment configured
+ - [x] Social feed (posts, likes, comments) with post creation and previews
+ - [x] Post interactions: like, comment, replies, and moderation endpoints
+ - [x] User profiles and follow/unfollow flows
+ - [x] Private messaging UI (conversations, messages, new message flow)
+ - [x] Crag & route browsing, favorites, and nearby discovery endpoints
+ - [x] Route ticks: create, view, edit, share, and stats pages
+ - [x] Gear lists: create, edit, share, participants, and item actions
+ - [x] Notifications: in-app notification UI and API endpoints
+ - [x] Groups: create, join/leave, group settings and real-time group flows
+ - [x] File upload signing and Cloudinary integration helpers
+ - [x] Admin reports UI and report handling endpoints
 
 ### 🔄 Next Steps
 - [ ] Initialize PostgreSQL database
 - [ ] Run Prisma migrations
-- [ ] Build User registration and profile setup (US1)
-- [ ] Build Social feed with posts and likes (US2)
+- [ ] Finish backend migrations and seed data for local dev
+- [ ] Harden authentication and session edge-cases (email verification, password reset flows already scaffolded)
+- [ ] Implement server-side rate limiting and content moderation automation
 
-### 📋 Planned (280 tasks total)
-- [ ] Private messaging (US3 - 25 tasks)
-- [ ] User discovery and follows (US4 - 20 tasks)
-- [ ] Group chat coordination (US5 - 20 tasks, P2)
-- [ ] Crag and route database (US6 - 29 tasks)
-- [ ] Route tick lists (US7 - 24 tasks)
-- [ ] Offline journals (US8 - 23 tasks, P3)
-- [ ] Group gear lists (US9 - 26 tasks)
+### 📋 Remaining Planned Work
+The core product features (messaging, user discovery & follows, group chats, crag/route browsing, ticks, gear lists, notifications, and admin reporting) are implemented. Remaining work focuses on polishing, reliability, and delivery tasks below.
+- [ ] End-to-end test coverage and flaky test stabilization (tests/ and Playwright)
+- [ ] Seed data and local developer workflows (`prisma/seed.js`, `.env` examples)
+- [ ] Monitoring, logging, and observability (Sentry, metrics)
+- [ ] Performance tuning and pagination improvements for large feeds
+- [ ] Production hardening (rate limits, abuse mitigation, CD pipeline)
 
-See `../specs/001-climber-social-app/tasks.md` for complete breakdown.
+For the full original task breakdown refer to `../specs/001-climber-social-app/tasks.md`.
 
 ## 📝 License
 

@@ -2,6 +2,8 @@ import { requireUserId } from '~/lib/auth.server';
 import { db } from '~/lib/db.server';
 import { PageWrapper } from '~/components/ui/page-wrapper';
 import { redirect, Link } from 'react-router';
+import { Input } from '~/components/ui/input';
+import { useEffect, useRef, useState } from 'react';
 
 export async function loader({ request, params }: any) {
   const userId = await requireUserId(request);
@@ -33,9 +35,9 @@ export async function action({ request, params }: any) {
   }
 
   if (action === 'add-participant') {
-    const displayName = (form.get('displayName') as string || '').trim();
-    if (!displayName) return redirect(`/groups/${groupId}/settings`);
-    const userToAdd = await db.user.findUnique({ where: { displayName } });
+    const userId = form.get('userId') as string;
+    if (!userId) return redirect(`/groups/${groupId}/settings`);
+    const userToAdd = await db.user.findUnique({ where: { id: userId } });
     if (!userToAdd) throw new Response('User not found', { status: 404 });
 
     if (!group.participantIds.includes(userToAdd.id)) {
@@ -45,6 +47,18 @@ export async function action({ request, params }: any) {
         where: { groupChatId_participantId: { groupChatId: groupId, participantId: userToAdd.id } } as any,
         create: { groupChatId: groupId, participantId: userToAdd.id, lastReadAt: null },
         update: {},
+      });
+
+      // Create notification for invited user
+      await db.notification.create({
+        data: {
+          userId: userToAdd.id,
+          type: 'group_invite',
+          relatedEntityId: group.id,
+          relatedEntityType: 'group_chat',
+          content: { message: `You've been added to group: ${group.name}` },
+          readStatus: false,
+        },
       });
     }
 
@@ -91,6 +105,57 @@ export async function action({ request, params }: any) {
 
 export default function GroupSettings({ loaderData }: any) {
   const { group, participants, userId, gearLists } = loaderData;
+  const [queryState, setQueryState] = useState('');
+  const [clientResults, setClientResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const lastQueryRef = useRef<string>('');
+  const debounceRef = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Live-search users as queryState changes (debounced)
+  useEffect(() => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+
+    if (!queryState || queryState.length < 2) {
+      setClientResults([]);
+      setSearching(false);
+      return;
+    }
+
+    debounceRef.current = window.setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(queryState)}`, {
+          signal: abortRef.current.signal,
+        });
+        if (!res.ok) {
+          setSearching(false);
+          return;
+        }
+        const data = await res.json();
+        // Exclude already-added participants from the results
+        const users = (data.users || []).filter((u: any) => 
+          !participants.some((p: any) => p.id === u.id) && u.id !== userId
+        );
+        setClientResults(users);
+        lastQueryRef.current = queryState;
+        setSearching(false);
+      } catch (err) {
+        if ((err as any).name === 'AbortError') return;
+        console.error('User search failed', err);
+        setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, [queryState, participants, userId]);
 
   return (
     <PageWrapper maxWidth="3xl">
@@ -151,12 +216,66 @@ export default function GroupSettings({ loaderData }: any) {
           </div>
 
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-primary">Add by display name</h3>
-            <form method="post" className="mt-2 flex space-x-2">
-              <input name="displayName" placeholder="exact display name" className="flex-1 rounded-md border p-2 bg-surface" />
-              <input type="hidden" name="_action" value="add-participant" />
-              <button className="btn-primary px-4 py-2">Add</button>
-            </form>
+            <h3 className="text-sm font-medium text-primary mb-2">Add Participant</h3>
+            
+            <div className="mb-3">
+              <Input
+                type="text"
+                name="q"
+                id="search"
+                value={queryState}
+                onChange={(e) => setQueryState(e.target.value)}
+                placeholder="Search for a user..."
+                className="w-full rounded-lg border border-default px-4 py-2 text-sm focus:outline-none focus:ring-2 dark:border-default dark:bg-surface dark:text-primary"
+                autoComplete="off"
+              />
+            </div>
+
+            {/* Search Results */}
+            {clientResults.length > 0 && (
+              <div className="space-y-2 mb-3 max-h-60 overflow-y-auto">
+                {clientResults.map((user) => (
+                  <form key={user.id} method="post" className="inline-block w-full">
+                    <input type="hidden" name="_action" value="add-participant" />
+                    <input type="hidden" name="userId" value={user.id} />
+                    <button
+                      type="submit"
+                      className="flex w-full items-center justify-between space-x-3 rounded-lg p-3 text-left hover:bg-surface dark:hover:bg-surface"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {user.profilePhotoUrl ? (
+                          <img
+                            src={user.profilePhotoUrl}
+                            alt={user.displayName}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
+                            {user.displayName[0].toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-medium text-primary">
+                          {user.displayName}
+                        </span>
+                      </div>
+                      <span className="text-sm text-secondary">Add</span>
+                    </button>
+                  </form>
+                ))}
+              </div>
+            )}
+
+            {queryState && !searching && clientResults.length === 0 && lastQueryRef.current === queryState && (
+              <p className="text-center text-sm text-muted mb-3">
+                No users found matching "{queryState}"
+              </p>
+            )}
+
+            {!queryState && (
+              <p className="text-center text-sm text-muted mb-3">
+                Type at least 2 characters to search for users
+              </p>
+            )}
           </div>
         </section>
 

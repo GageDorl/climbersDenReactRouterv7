@@ -27,14 +27,15 @@ export async function generateUploadSignature(
   const quality = preset === 'profile' ? 'auto:low' : 'auto:good';
 
   // For profile uploads, include a resize transformation to 800px width
-  const transformation = preset === 'profile' ? JSON.stringify([{ width: 800, crop: 'scale' }]) : undefined;
+  // Use Cloudinary's transformation string format: w_800,c_scale
+  const transformation = preset === 'profile' ? 'w_800,c_scale' : undefined;
 
-  // Include only the parameters that will be sent by the client
-  // No upload_preset needed for signed uploads - the signature authorizes
+  // Include only the parameters that will be sent by the client for signature
+  // Note: 'quality' is NOT a signed parameter - it's applied but not validated in signature
+  // Only signed params: folder, timestamp, transformation (if provided)
   const params: any = {
-    timestamp,
     folder,
-    quality,
+    timestamp,
   };
   if (transformation) params.transformation = transformation;
 

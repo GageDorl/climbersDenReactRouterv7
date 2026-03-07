@@ -69,8 +69,18 @@ export async function getUser(request: Request) {
       experienceLevel: true,
       latitude: true,
       longitude: true,
+      role: true,
     },
   });
+}
+
+export async function requireAdmin(request: Request) {
+  const userId = await requireUserId(request);
+  const user = await db.user.findUnique({ where: { id: userId, deletedAt: null }, select: { id: true, role: true } });
+  if (!user || user.role !== 'ADMIN') {
+    throw new Response('Forbidden - admin only', { status: 403 });
+  }
+  return user;
 }
 
 export async function requireUserId(
