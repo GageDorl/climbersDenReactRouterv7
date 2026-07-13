@@ -16,8 +16,8 @@ A comprehensive mobile-first web application for rock climbers combining social 
 - **Group Coordination**: Real-time group chats for trip planning
 - **Gear Lists**: Collaborative gear coordination for climbing trips
 
-### Phase 3 Features
-- **Offline Journals**: Private climbing journals that sync when online
+### Phase 3 Features (not yet built)
+- **Offline Journals**: `Journal` exists as a Prisma model, but there are no routes, components, or Dexie.js sync logic yet. `dexie` and `workbox-window` are installed but unused.
 
 ## 🚀 Quick Start
 
@@ -44,6 +44,11 @@ A comprehensive mobile-first web application for rock climbers combining social 
    - `CLOUDINARY_*`: Get free account at [cloudinary.com](https://cloudinary.com)
    - `MAPBOX_ACCESS_TOKEN`: Get free account (50k loads/month) at [mapbox.com](https://mapbox.com)
    - `OPENWEATHER_API_KEY`: Get free key at [openweathermap.org](https://openweathermap.org/api)
+   - `SMTP_*` / `EMAIL_FROM`: Password reset emails; use [Mailtrap](https://mailtrap.io) for dev
+
+   Optional variables:
+   - `OPENBETA_API_URL`: Public OpenBeta GraphQL API for crag/route data — no key required, defaults to `https://api.openbeta.io/`
+   - `REDIS_URL`: Only needed if scaling Socket.IO across multiple instances
 
 3. **Create database**
    ```bash
@@ -81,29 +86,37 @@ app/
 │   ├── auth.server.ts  # Authentication & session management
 │   ├── db.server.ts    # Prisma client singleton
 │   ├── cloudinary.server.ts  # Media upload utilities
+│   ├── email.server.ts # Password reset emails (SMTP)
+│   ├── openbeta.server.ts  # OpenBeta GraphQL client (crag/route data)
+│   ├── weather.server.ts   # OpenWeatherMap client
+│   ├── realtime.server.ts # Socket.IO server setup
 │   ├── geo-utils.ts    # Geolocation & distance calculations
 │   └── validation.ts   # Zod validation schemas
 ├── components/          # React components
 │   ├── ui/             # Base UI components (Radix UI)
-│   ├── auth/           # Authentication components
 │   ├── posts/          # Social feed components
 │   ├── messages/       # Messaging components
 │   ├── crags/          # Crag & route components
+│   ├── gear/, ticks/, discovery/, location/, search/, weather/, profile/
 │   └── ...
-├── hooks/               # Custom React hooks
-│   └── use-geolocation.ts  # Device GPS access hook
+│   # Note: there are no dedicated auth/ or groups/ folders — that UI
+│   # lives inline in the corresponding route files.
+├── hooks/               # Custom React hooks (8 total), including
+│   │                    # use-geolocation, use-socket, use-infinite-scroll,
+│   │                    # use-background-location, use-haptic-feedback
+│   └── ...
 ├── types/               # TypeScript type definitions
-│   └── db.ts           # Prisma types & custom interfaces
+│   ├── db.ts           # Prisma types & custom interfaces
+│   └── realtime.ts     # Socket.IO event types
 └── app.css             # Global styles (Tailwind)
 
 prisma/
-└── schema.prisma       # Database schema (18 entities)
+└── schema.prisma       # Database schema (25 entities)
 
 tests/
-├── routes/             # Loader/action tests
-├── lib/                # Business logic tests
-├── components/         # Component tests (React Testing Library)
-└── e2e/                # End-to-end tests (Playwright)
+└── setup.ts            # Vitest setup only — no test files exist yet
+                         # despite vitest/Playwright being configured
+                         # (see Testing section below)
 ```
 
 ## 🛠️ Available Scripts
@@ -124,6 +137,12 @@ tests/
 
 ## 🧪 Testing
 
+**Status: not yet started.** Vitest and Playwright are fully configured
+(`vitest.config.ts` sets an 80% coverage threshold; `playwright.config.ts`
+exists), but there are no test files in the repo yet beyond
+`tests/setup.ts`. The commands below will run, they just won't find
+anything to test until suites are written.
+
 ### Unit & Integration Tests (Vitest)
 ```bash
 npm test
@@ -143,7 +162,7 @@ npm run test:e2e:ui
 npm run test:coverage
 ```
 
-Minimum coverage threshold: **80%** for branches, functions, lines, and statements.
+Configured minimum coverage threshold: **80%** for branches, functions, lines, and statements (not currently met — see above).
 
 ## 🌐 Tech Stack
 
@@ -153,7 +172,7 @@ Minimum coverage threshold: **80%** for branches, functions, lines, and statemen
 - **Tailwind CSS** - Utility-first CSS framework
 - **Radix UI** - Accessible component primitives
 - **Mapbox GL JS** - Interactive maps
-- **Dexie.js** - IndexedDB for offline journals
+- **Dexie.js** - Installed for future offline-journal sync (IndexedDB); not yet wired up to any route or component
 
 ### Backend
 - **Node.js** - JavaScript runtime
@@ -161,8 +180,9 @@ Minimum coverage threshold: **80%** for branches, functions, lines, and statemen
 - **PostgreSQL 15+** - Relational database
 - **Socket.IO** - Real-time WebSocket communication
 - **Cloudinary** - Media storage and CDN
-- **Bcrypt** - Password hashing
+- **bcryptjs** - Password hashing
 - **Zod** - Runtime type validation
+- **OpenBeta GraphQL API** - Public crag/route data source (no API key required)
 
 ### Testing
 - **Vitest** - Unit and integration testing
@@ -172,15 +192,17 @@ Minimum coverage threshold: **80%** for branches, functions, lines, and statemen
 
 ## 📊 Database Schema
 
-The application uses 18 PostgreSQL entities:
+The application uses 25 PostgreSQL entities:
 
-**User Management**: User, Follow, Block, Notification, Report
+**User Management**: User, NotificationPreference, Follow, Block, Notification, Report, PasswordResetToken
 
-**Social Features**: Post, Like, Message, Conversation, GroupChat, GroupMessage
+**Social Features**: Post, Comment, Like, Message, Conversation, GroupChat, GroupMessage, GroupChatParticipant
 
 **Climbing Data**: Crag, Route, Tick, RouteRating, FavoriteCrag, WeatherForecast
 
 **Trip Planning**: GearList, GearItem, Journal, CragSubmission
+
+`Journal` currently has no application code built on top of it (see Phase 3 note above).
 
 See `prisma/schema.prisma` for full schema definition.
 
@@ -220,7 +242,7 @@ See `prisma/schema.prisma` for full schema definition.
 
 ### ✅ Completed
 - [x] Project setup and configuration
-- [x] Database schema with 18 entities
+- [x] Database schema with 25 entities
 - [x] Authentication infrastructure
 - [x] Foundational utilities (auth, db, validation, geolocation)
 - [x] Development environment configured
@@ -235,23 +257,23 @@ See `prisma/schema.prisma` for full schema definition.
  - [x] Groups: create, join/leave, group settings and real-time group flows
  - [x] File upload signing and Cloudinary integration helpers
  - [x] Admin reports UI and report handling endpoints
+ - [x] Password reset flow (request + token-based reset, email via SMTP) — fully implemented, not just scaffolded
 
 ### 🔄 Next Steps
 - [ ] Initialize PostgreSQL database
 - [ ] Run Prisma migrations
 - [ ] Finish backend migrations and seed data for local dev
-- [ ] Harden authentication and session edge-cases (email verification, password reset flows already scaffolded)
+- [ ] Email verification on registration (password reset is already done — see above)
 - [ ] Implement server-side rate limiting and content moderation automation
 
 ### 📋 Remaining Planned Work
 The core product features (messaging, user discovery & follows, group chats, crag/route browsing, ticks, gear lists, notifications, and admin reporting) are implemented. Remaining work focuses on polishing, reliability, and delivery tasks below.
-- [ ] End-to-end test coverage and flaky test stabilization (tests/ and Playwright)
+- [ ] Write the test suite — currently zero test files exist despite Vitest/Playwright being configured (tests/ and Playwright)
+- [ ] Offline Journals feature (Dexie.js sync) — `Journal` is currently a DB model only, no routes/UI
 - [ ] Seed data and local developer workflows (`prisma/seed.js`, `.env` examples)
 - [ ] Monitoring, logging, and observability (Sentry, metrics)
 - [ ] Performance tuning and pagination improvements for large feeds
 - [ ] Production hardening (rate limits, abuse mitigation, CD pipeline)
-
-For the full original task breakdown refer to `../specs/001-climber-social-app/tasks.md`.
 
 ## 📝 License
 
